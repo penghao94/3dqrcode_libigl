@@ -1,6 +1,8 @@
 #include <igl/readOFF.h>
 #include <igl/viewer/Viewer.h>
 #include <igl/jet.h>
+#include <iostream>
+using namespace std;
 //#include "tutorial_shared_path.h"
 
 Eigen::MatrixXd V;
@@ -27,4 +29,6 @@ int main(int argc, char *argv[])
 
   // Launch the viewer
   viewer.launch();
+  cout<<"hello 3d qrcode"<<endl;
+  
 }
