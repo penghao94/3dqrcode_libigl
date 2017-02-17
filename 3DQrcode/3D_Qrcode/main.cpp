@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 		  if (OutputFile != "")
 		  {
 			  //cout << OutputFile;
-			  SaveMesh(output,viewer,viewer.data);
+			  qrcode::SaveMesh(output,viewer,viewer.data);
 			  //viewer.save_mesh_to_file(output);
 		  }
 	  });

@@ -1,6 +1,6 @@
 #include "SaveMesh.h"
 
-bool SaveMesh(const char* mesh_file_name,igl::viewer::Viewer viewer, igl::viewer::ViewerData data)
+bool qrcode::SaveMesh(const char* mesh_file_name,igl::viewer::Viewer viewer, igl::viewer::ViewerData data)
 {
 	std::string mesh_file_name_string(mesh_file_name);
 
