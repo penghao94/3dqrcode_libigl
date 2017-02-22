@@ -1,6 +1,6 @@
 #include "SaveMesh.h"
 
-bool qrcode::SaveMesh(const char* mesh_file_name,igl::viewer::Viewer viewer, igl::viewer::ViewerData data)
+bool qrcode::saveMesh(const char* mesh_file_name,igl::viewer::Viewer& viewer, igl::viewer::ViewerData& data)
 {
 	std::string mesh_file_name_string(mesh_file_name);
 
@@ -20,7 +20,7 @@ bool qrcode::SaveMesh(const char* mesh_file_name,igl::viewer::Viewer viewer, igl
 	{
 		return igl::writeSTL(mesh_file_name_string, data.V, data.F, data.F_normals,true);
 	}
-	else
+	else 
 	{
 		// unrecognized file type
 		printf("Error: %s is not a recognized file type.\n", extension.c_str());
