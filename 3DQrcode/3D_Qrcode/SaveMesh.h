@@ -6,9 +6,10 @@
 #include <iostream>
 using namespace std;
 //#include "igl/viewer/ViewerPlugin.h"
+
 namespace qrcode
 {
-	bool SaveMesh(const char* mesh_file_name, igl::viewer::Viewer viewer, igl::viewer::ViewerData data);
+	bool saveMesh(const char* mesh_file_name, igl::viewer::Viewer& viewer, igl::viewer::ViewerData& data);
 }
 
 #endif // !SAVEMESH_H

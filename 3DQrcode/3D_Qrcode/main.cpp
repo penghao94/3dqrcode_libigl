@@ -1,36 +1,38 @@
+#include "main.h"
 #include "SaveMesh.h"
+#include "Select.h"
+#include "LoadQRCode.h"
+#include "Test.h"
 
 #include "igl/file_dialog_open.h"
 #include "igl/file_dialog_save.h"
 #include <Eigen/Dense>
-#include <igl/readOFF.h>
-#include <igl/writeOFF.h>
-#include <igl/viewer/Viewer.h>
+//#include <igl/readOFF.h>
+//#include <igl/writeOFF.h>
+#include <igl/viewer/ViewerCore.h>
 #include <nanogui/formhelper.h>
 #include <nanogui/screen.h>
-#include <igl/unproject_onto_mesh.h>
 //#include <igl/jet.h>
 
-#include <iostream>
-
-using namespace std;
 using namespace igl;
 
 int main(int argc, char *argv[])
 {
   // Initiate viewer
   igl::viewer::Viewer viewer;
+  viewer.core.background_color << 1.0f, 1.0f, 1.0f, 1.0f;
 
   Eigen::MatrixXd V;
   Eigen::MatrixXi F;
   Eigen::MatrixXd C;
-  //V.resize(0, 0);
-  //F.resize(0, 0);
-  //C.resize(0, 0);
 
   // UI Design
   viewer.callback_init = [&](igl::viewer::Viewer& viewer)
   {
+
+	  // Add an additional menu window
+	  viewer.ngui->addWindow(Eigen::Vector2i(220, 15), "I/O Operator");
+
 	  // Add new group
 	  viewer.ngui->addGroup("Load & Save");
 
@@ -63,8 +65,21 @@ int main(int argc, char *argv[])
 		  if (OutputFile != "")
 		  {
 			  //cout << OutputFile;
-			  qrcode::SaveMesh(output,viewer,viewer.data);
+			  qrcode::saveMesh(output,viewer,viewer.data);
 			  //viewer.save_mesh_to_file(output);
+		  }
+	  });
+
+	  // Add a button
+	  viewer.ngui->addButton("Load	QRCode", [&]() {
+		  string InputQRCode = "";
+		  InputQRCode = igl::file_dialog_open();
+		  if (InputQRCode != "")
+		  {
+			  Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic> R, G, B, A;
+			  qrcode::readPNG(InputQRCode, R, G, B, A);
+			  //cout << R << G << B << A;
+			  qrcode::loadQRCode(viewer, R, G, B);
 		  }
 	  });
 
@@ -76,26 +91,18 @@ int main(int argc, char *argv[])
 
   // Select Target Region
 
-
   viewer.callback_mouse_down =
 	  [&V, &F, &C](igl::viewer::Viewer& viewer, int, int)->bool
   {
-	  int fid;
-	  Eigen::Vector3f bc;
-	  // Cast a ray in the view direction starting from the mouse position
-	  double x = viewer.current_mouse_x;
-	  double y = viewer.core.viewport(3) - viewer.current_mouse_y;
-	  if (igl::unproject_onto_mesh(Eigen::Vector2f(x, y), viewer.core.view * viewer.core.model,
-		  viewer.core.proj, viewer.core.viewport, V, F, fid, bc))
-	  {
-		  // paint hit red
-		  C.row(fid) << 1, 0, 0;
-		  cout << fid << endl;
-		  viewer.data.set_colors(C);
-		  return true;
-	  }
+	  qrcode::select(viewer, V, F, C);
 	  return false;
   };
+  
+  //GLuint iTex;
+  //qrcode::LoadT8("images/IRC_version1_1.bmp", iTex);
+  //glTranslatef(0, 0, -10);
+  //qrcode::texture(iTex);
+  //qrcode::tPic(3.0f);
 
   // Launch the viewer
   viewer.launch();
