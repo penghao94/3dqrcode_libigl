@@ -2,7 +2,7 @@
 #include "SaveMesh.h"
 #include "Select.h"
 #include "LoadQRCode.h"
-#include "Test.h"
+#include "readData.h"
 
 #include "igl/file_dialog_open.h"
 #include "igl/file_dialog_save.h"
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 
 	  // Add a button
 	  viewer.ngui->addButton("Load	QRCode", [&]() {
-		  string InputQRCode = "";
+		  /*string InputQRCode = "";
 		  InputQRCode = igl::file_dialog_open();
 		  if (InputQRCode != "")
 		  {
@@ -80,7 +80,10 @@ int main(int argc, char *argv[])
 			  qrcode::readPNG(InputQRCode, R, G, B, A);
 			  //cout << R << G << B << A;
 			  qrcode::loadQRCode(viewer, R, G, B);
-		  }
+		  }*/
+		  Eigen::MatrixXi D;
+		  qrcode::readData(D);
+		  cout << D << endl;
 	  });
 
 	  // Generate menu
