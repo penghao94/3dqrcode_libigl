@@ -3,7 +3,7 @@
 #include "Select.h"
 #include "LoadQRCode.h"
 #include "readData.h"
-
+#include "img_to_mesh.h"
 #include "igl/file_dialog_open.h"
 #include "igl/file_dialog_save.h"
 #include <Eigen/Dense>
@@ -12,6 +12,7 @@
 #include <igl/viewer/ViewerCore.h>
 #include <nanogui/formhelper.h>
 #include <nanogui/screen.h>
+#include "igl/Timer.h"
 //#include <igl/jet.h>
 
 using namespace igl;
@@ -20,12 +21,13 @@ int main(int argc, char *argv[])
 {
   // Initiate viewer
   igl::viewer::Viewer viewer;
+  igl::Timer timer;
   viewer.core.background_color << 1.0f, 1.0f, 1.0f, 1.0f;
 
   Eigen::MatrixXd V;
   Eigen::MatrixXi F;
   Eigen::MatrixXd C;
-
+  Eigen::MatrixXi D;
   // UI Design
   viewer.callback_init = [&](igl::viewer::Viewer& viewer)
   {
@@ -81,11 +83,20 @@ int main(int argc, char *argv[])
 			  //cout << R << G << B << A;
 			  qrcode::loadQRCode(viewer, R, G, B);
 		  }*/
-		  Eigen::MatrixXi D;
+		 
 		  qrcode::readData(D);
-		  cout << D << endl;
+		 // cout << D << endl;
 	  });
-
+	  viewer.ngui->addButton("Test Project", [&]() {
+		  Eigen::MatrixXi  _F,fid;
+		  Eigen::MatrixXd _V, _C;
+		  timer.start();
+		  qrcode::img_to_mesh(viewer, V, F, D, fid, _V, _F, _C);
+		  cout << "time = " << timer.getElapsedTime() << endl;
+		  //cout <<"D"<<endl<< _D << endl;
+		 // cout << "F" << endl << _F << endl;
+		 // cout << "C" << endl << _C << endl;
+	  });
 	  // Generate menu
 	  viewer.screen->performLayout();
 
