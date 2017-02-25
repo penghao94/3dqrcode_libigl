@@ -1,9 +1,9 @@
-#pragma once
 #ifndef IMGTOMESH_H_
 #define IMGTOMESH_H_
 #include <iostream>
 #include <igl/viewer/Viewer.h>
 #include <igl/unproject_in_mesh.h>
+
 namespace qrcode {
 	
 	//************************************

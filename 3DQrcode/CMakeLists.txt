@@ -74,4 +74,6 @@ add_definitions("-DTUTORIAL_SHARED_PATH=\"${TUTORIAL_SHARED_PATH}\"")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 #add project 3D_Qrcode
- add_subdirectory("3D_Qrcode")
+ if(LIBIGL_WITH_CGAL)
+	add_subdirectory("3D_Qrcode")
+ endif()
