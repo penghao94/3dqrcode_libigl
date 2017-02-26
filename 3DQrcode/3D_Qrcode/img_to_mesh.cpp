@@ -49,8 +49,8 @@ bool qrcode::img_to_facet(Eigen::MatrixXi & D, Eigen::MatrixXi & F, Eigen::Matri
 			int b = (i + 1)*D.cols() + j;
 			int c = i*D.cols() + j + 1;
 			int d = (i + 1)*D.cols() + j + 1;
-			F.row(2 * (i*(D.cols() - 1) + j)) << a, b, c;
-			F.row(2 * (i*(D.cols() - 1) + j) +1) << b, d, c;
+			F.row(2 * (i*(D.cols() - 1) + j)) << b, a, c;
+			F.row(2 * (i*(D.cols() - 1) + j) +1) << d, b, c;
 			if (D(i,j) + D(i+1,j) +D(i,j+1) < 1)
 				C.row(2*(i*(D.cols() - 1) + j)) << 0, 0, 0;
 			else

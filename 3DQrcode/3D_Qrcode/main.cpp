@@ -13,6 +13,7 @@
 #include <igl/copyleft/cgal/mesh_boolean.h>
 #include <nanogui/formhelper.h>
 #include <nanogui/screen.h>
+#include <igl/unique.h>
 #include "igl/Timer.h"
 //#include <igl/jet.h>
 
@@ -28,7 +29,7 @@ int main(int argc, char *argv[])
 
   Eigen::MatrixXd V,_V;
   Eigen::MatrixXi F,_F;
-  Eigen::MatrixXd C;
+  Eigen::MatrixXd C,_C;
   Eigen::MatrixXi D;
   // UI Design
   viewer.callback_init = [&](igl::viewer::Viewer& viewer)
@@ -87,13 +88,13 @@ int main(int argc, char *argv[])
 		  }*/
 		 
 		  qrcode::readData(D);
+		  //D = D.block(0, 0, 32, 32);
 		  //cout << D << endl;
 	  });
-	  viewer.ngui->addButton("Test Project", [&]() {
+	  viewer.ngui->addButton("QR Mesh", [&]() {
 		  //igl::readOFF(InputFile, V, F);
 		  viewer.data.clear();
-		  Eigen::MatrixXi fid;
-		  Eigen::MatrixXd  _C;
+		  Eigen::MatrixXi t_F, fid;
 		  /*D.resize(4, 4);
 		  D << 1, 1, 1, 1,
 			  1, 0, 0, 1,
@@ -106,12 +107,24 @@ int main(int argc, char *argv[])
 		  timer.start();
 		  qrcode::img_to_mesh(viewer, V, F, D, fid, _V, _F, _C);
 		  cout << "time = " << timer.getElapsedTime() << endl;
+		  Eigen::VectorXi Fi;
+		  igl::unique(fid, Fi);
+		  t_F.resize(F.rows() - Fi.size(), 3);
+		  int j = 0;
+		  //cout << Fi << endl;
+		  for (int i = 0; i < F.rows(); i++)
+		  {
+			  if (i == Fi(j))
+				  j++;
+			  else
+				  t_F.row(i - j) << F(i);
+		  }
 		  //cout << "V" << _V << endl << "F" << _F <<endl;
 		  //C= Eigen::MatrixXd::Constant(_V.rows(), 3, 0);
 		  //viewer.data.set_points(_V,C);
 
-		  viewer.data.set_mesh(_V,_F);
-		  viewer.data.set_colors(_C);
+		  viewer.data.set_mesh(V,t_F);
+		  //viewer.data.set_colors(_C);
 
 		  //cout << viewer.core.model << endl;
 		  //cout << fid << endl;
@@ -123,11 +136,29 @@ int main(int argc, char *argv[])
 
 	  viewer.ngui->addButton("Merge	QRCode", [&]() {
 
-		  Eigen::MatrixXd VC;
-		  Eigen::MatrixXi FC;
+		  viewer.data.clear();
+		  Eigen::MatrixXd V_temp, V_union;
+		  Eigen::MatrixXi F_temp, F_union;
+		  Eigen::MatrixXd C_union(F_union.rows(), 3);
 		  Eigen::VectorXi J;
+		  timer.start();
 		  igl::MeshBooleanType boolean_type(igl::MESH_BOOLEAN_TYPE_UNION);
-		  igl::copyleft::cgal::mesh_boolean(V, F, _V, _F, boolean_type, VC, FC, J);
+		  //igl::copyleft::cgal::mesh_boolean(V, F, _V, _F, 2, V_temp, F_temp, J);
+		  //igl::copyleft::cgal::mesh_boolean(V_temp, F_temp, _V, _F, igl::MESH_BOOLEAN_TYPE_UNION, V_union, F_union, J);
+		  igl::copyleft::cgal::mesh_boolean( _V, _F, V, F, igl::MESH_BOOLEAN_TYPE_UNION, V_union, F_union, J);
+		  cout << "time = " << timer.getElapsedTime() << endl;
+		  viewer.data.set_mesh(V_union, F_union);
+		  /*for (size_t f = 0; f < C.rows(); f++)
+		  {
+			  if (J(f) < F.rows())
+			  {
+				  C_union.row(f) = _C.row(f);
+			  }
+			  else
+			  {
+				  C_union.row(f) = Eigen::RowVector3d(0, 1, 0);
+			  }
+		  }*/
 
 	  });
 
