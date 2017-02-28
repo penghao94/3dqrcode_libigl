@@ -1,3 +1,4 @@
+
 #include "readData.h"
 #include <igl\file_dialog_open.h>
 bool qrcode::readData(Eigen::MatrixXi & D)
@@ -40,7 +41,6 @@ bool qrcode::readData(const std::string file, Eigen::MatrixXi & D)
 			D(i, j) = (temp(i, j) > 0) ? 1 : 0;
 		}
 	}
-	//D = R.cast<int>();
 	R.resize(0,0);
 	G.resize(0,0);
 	B.resize(0,0);
