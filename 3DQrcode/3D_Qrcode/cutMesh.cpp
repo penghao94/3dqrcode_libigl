@@ -25,18 +25,20 @@ bool qrcode::cutMesh(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::MatrixXi &
 	
 	qrcode::eList* elist = new qrcode::eList();
 
-	for (int i = 2; i < rest_F.rows(); i++) {
+	for (int i = 0; i < rest_F.rows(); i++) {
+		std::cout << i << std::endl;
 		elist->add(rest_F(i, 0), rest_F(i, 1));
 		elist->add(rest_F(i, 1), rest_F(i, 2));
 		elist->add(rest_F(i, 2), rest_F(i, 0));
+		elist->matrix(Ee);
+		std::cout << "Ee:" << endl << Ee << std::endl;
 	}
 	//cout << "rest_F(0, 0)" << rest_F(0, 0) << "rest_F(0, 1)" << rest_F(0, 1);
 	/*elist->add(rest_F(0, 0), rest_F(0, 1));
 	elist->add(rest_F(0, 1), rest_F(0, 2));
 	elist->add(rest_F(0, 2), rest_F(0, 0));
 	*/
-	elist->matrix(Ee);
-	std::cout << "Ee:" << endl << Ee << std::endl;
+	
 	return true;
 }
 

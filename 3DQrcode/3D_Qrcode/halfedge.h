@@ -19,9 +19,10 @@ namespace qrcode {
 		eNode* next;
 	};
 	class eList{
-	public:
-		eNode* node;
+	private:
 		eNode* head;
+	public:
+		
 		eList();
 		~eList();
 		void add( int x, int y);

@@ -1,17 +1,16 @@
 #include "halfedge.h"
 #include "stdio.h"
 #include <iostream>
-
+using namespace std;
 qrcode::eList::eList()
 {
-	node = NULL;
 	head = NULL;
 }
 
 qrcode::eList::~eList()
 {
 	while (head != NULL) {
-		eNode *temp=head;
+		eNode *temp = head;
 		head = head->next;
 		delete(temp);
 	}
@@ -20,58 +19,57 @@ qrcode::eList::~eList()
 
 void qrcode::eList::add(int x, int y)
 {
-	eNode *temp;
-	eNode *t;
-	node = new eNode();
+	eNode* node = new eNode();
 	node->s = x;
 	node->d = y;
 	node->next = NULL;
-	if (head == NULL) {
+	eNode *index=NULL;
+	eNode *predex=NULL;
+	if (head ==NULL) {
 		head = node;
+		cout << "head:" << head << endl;
 	}
-	else {
-		temp = head;
-		t = temp;
-		//std::cout << temp->s << "   " << temp->d << std::endl;
-		while (temp != NULL) {
-			//std::cout << node->s << "   " << node->d << std::endl;
-			if (node->s != temp->s && node->d != temp->d) {
-				int m = y;
-				int n = x;
-				if (node->s != m && node->d != n) {
-					t = temp;
-					temp = temp->next;
-				}	
-				else {
-					if (temp == head) {
-						head = temp->next;
-						delete(temp);
-					}
-					else {
-						t->next = temp->next;
-						delete(temp);
-						temp = NULL;
-					}
+	else
+	{
+		index = head;
+		cout << "head:" << index << endl;
+		while (index!=NULL)
+		{
+			if (index->s!=node->d||index->d!=node->s)
+			{
+				predex = index;
+				index = index->next;
+				cout << "predex:" << predex << endl;
+				cout << "index:" << index << endl;
+			}
+			else
+			{
+				
+				if (index == head)
+				{
+					head = index->next;
+					delete(index);
+					delete(node);
+					//cout << "delete head" << endl;
+					return;
+				}
+				else
+				{
+					//cout << "delete other" << endl;
+					predex->next = index->next;
+					delete(index);
+					delete(node);
 					return;
 				}
 			}
-			else {
-				if (temp == head) {
-					head = temp->next;
-					delete(temp);
-					temp = NULL;
-				}
-				else {
-					t->next = temp->next;
-					delete(temp);
-					return;
-				}//end of third else
-			}//end of second else
-		}//end of while
-		temp = node;
-		t->next = temp;
-	}//end of first else
-}//end of void
+		}
+		index = node;
+		predex->next = index;
+	}
+}
+
+
+
 void qrcode::eList::matrix(Eigen::MatrixXi &E)
 {
 	E.resize(0, 2);
@@ -83,4 +81,3 @@ void qrcode::eList::matrix(Eigen::MatrixXi &E)
 	}
 	head = t;
 }
-
