@@ -1,3 +1,12 @@
+/*!
+ * This is a project to generate QRcode using libigl. See more at https://github.com/libigl/libigl
+ *
+ * Copyright (C) 2017 Swanny Peng <ph1994wh@gmail.com>
+ *
+ * img_to_mesh.h  2017/02/26 16:26
+ * TODO: This function is used to convert image into mesh
+ *
+*/
 #ifndef IMGTOMESH_H_
 #define IMGTOMESH_H_
 #include <iostream>
@@ -6,19 +15,19 @@
 
 namespace qrcode {
 	
+	
 	//************************************
-	// Method:    img_to_mesh
-	// FullName:  qrcode::img_to_mesh
-	// Access:    public 
+	// Method:    qrcode::img_to_mesh
 	// Returns:   bool
-	// Qualifier:
-	// Parameter: igl::viewer::Viewer & viewer
-	// Parameter: Eigen::MatrixXd & V
-	// Parameter: Eigen::MatrixXi & F
-	// Parameter: Eigen::MatrixXi & D
-	// Parameter: Eigen::MatrixXi & fid
-	// Parameter: Eigen::MatrixXd & _V
-	// Parameter: Eigen::MatrixXi & _F
+	//
+	// @Param igl::viewer::Viewer & viewer
+	// @Param Eigen::MatrixXd & V
+	// @Param Eigen::MatrixXi & F
+	// @Param Eigen::MatrixXi & D
+	// @Param Eigen::MatrixXi & fid
+	// @Param Eigen::MatrixXd & _V
+	// @Param Eigen::MatrixXi & _F
+	// @Param Eigen::MatrixXd & _C
 	//************************************
 	bool img_to_mesh(
 		igl::viewer::Viewer &viewer,

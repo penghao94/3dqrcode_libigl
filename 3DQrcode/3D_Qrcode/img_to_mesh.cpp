@@ -24,7 +24,6 @@ bool qrcode::img_to_mesh(igl::viewer::Viewer & viewer,
 
 			if (igl::unproject_onto_mesh(Eigen::Vector2f(x, y), viewer.core.view*viewer.core.model,
 				viewer.core.proj, viewer.core.viewport, V, F, fid(i, j), _uv)) {
-				//std::cout<<fid(i,j)<<std::endl << temp_V << std::endl;
 				v0 = V.row(F(fid(i, j), 0));
 				v1 = V.row(F(fid(i, j), 1));
 				v2 = V.row(F(fid(i, j), 2));
