@@ -60,15 +60,18 @@ int main(int argc, char *argv[])
 			timer.start();
 			qrcode::cutMesh(V, F, fid, rest_V, rest_F, rest_E);
 			cout << "time = " << timer.getElapsedTime() << endl;
-			viewer.data.set_mesh(rest_V, rest_F);
-			//viewer.data.set_colors(_C);
+			viewer.data.set_mesh(_V, _F);
+			viewer.data.set_colors(_C);
 		});
 
 		viewer.ngui->addButton("Merge	QRCode", [&]() {
-			Eigen::MatrixXd Vt;
-			Eigen::MatrixXi Ft;
+			Eigen::MatrixXd Vt, H;
+			Eigen::MatrixXi Ft, E;
 			timer.start();
-			qrcode::tranglate(_V, _E, V, rest_E, _H, Vt, Ft);
+			H.resize(1, 2);
+			H.row(0) << _H(0, 0), _H(0, 1);
+			E = rest_E.block(0, 0, rest_E.rows(), 2);
+			qrcode::tranglate(_V, _E, V, E, H, Vt, Ft);
 			cout << "time = " << timer.getElapsedTime() << endl;
 			viewer.data.clear();
 			viewer.data.set_mesh(Vt, Ft);
@@ -86,14 +89,15 @@ int main(int argc, char *argv[])
 			cout << "time = " << timer.getElapsedTime() << endl;
 			timer.start();
 			E = rest_E.block(0, 0, rest_E.rows(), 2);
-			H.block(0, 0, 1, 2);
-			qrcode::tranglate(_V, _E, V, E, _H, Vt, Ft);
+			H.resize(1, 2);
+			H.row(0) << _H(0, 0),_H(0,1);
+			qrcode::tranglate(_V, _E, V, E, H, Vt, Ft);
 			cout << "time = " << timer.getElapsedTime() << endl;
 			viewer.data.clear();
-			cout << Vt << endl;
+			//cout << Vt << endl;
 			cout << endl;
-			cout << Ft << endl;
-			//viewer.data.set_mesh(Vt, Ft);
+			//cout << Ft << endl;
+			viewer.data.set_mesh(Vt, Ft);
 		});
 		// Generate menu
 		viewer.screen->performLayout();

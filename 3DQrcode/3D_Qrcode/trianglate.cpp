@@ -11,7 +11,6 @@ bool qrcode::tranglate(Eigen::MatrixXd & V1, Eigen::MatrixXi & E1, Eigen::Matrix
 	igl::unique(E2, C2, IA2, IC2);
 	V.resize(C1.rows() + C2.rows(),2);
 	E.resize(E1.rows() + E2.rows(),2);
-	cout << V.rows()<<"   "<<E.rows() << endl;
 	for (int i = 0;i < C1.rows(); i++) {
 		V.row(i) << V1(C1(i), 0), V1(C1(i), 1);
 	}
@@ -19,12 +18,15 @@ bool qrcode::tranglate(Eigen::MatrixXd & V1, Eigen::MatrixXi & E1, Eigen::Matrix
 		E.row(i) << IC1(2 * i), IC1(2 * i + 1);
 	}
 	for (int i = 0; i < C2.rows(); i++) {
-		//V.row(C1.rows() + i) << V2(C2(i), 0), V2(C2(i), 1);
+		V.row(C1.rows() + i) << V2(C2(i), 0), V2(C2(i), 1);
 	}
 	for (int i = 0; i < E2.rows(); i++) {
 		E.row(C1.rows() + i) << IC2(2 * i) + E1.rows() - 1, IC2(2 * i + 1) + E1.rows() - 1;
 	}
-	igl::triangle::triangulate(V,E,H,"a0.5q",_V,_F);
+	cout << V << endl;
+	cout << endl;
+	cout << E << endl;
+	//igl::triangle::triangulate(V,E,H,"a0.5q",_V,_F);
 	/**/
 	return false;
 }

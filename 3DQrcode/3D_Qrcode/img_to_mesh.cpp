@@ -34,7 +34,6 @@ bool qrcode::img_to_mesh(igl::viewer::Viewer & viewer,
 				_V.row(i*D.cols() + j) << _v(0),_v(1),_v(2);
 				if (i == int(D.rows() / 2) && j ==int(D.cols() / 2)) {
 					_H << _v(0), _v(1), _v(2);
-					std::cout << "liulin my love" << std::endl;
 				}
 					
 
@@ -76,7 +75,7 @@ bool qrcode::img_to_facet(Eigen::MatrixXi & D, Eigen::MatrixXi & F, Eigen::Matri
 				E.row(j + D.rows() - 1) << b, d;
 			if (j == 0)
 				E.row(i + 2 * (D.rows() - 1)) << a, b;
-			if (j == E.cols() - 2)
+			if (j == D.cols() - 2)
 				E.row(i + 3 * (D.rows() - 1)) << d, c;
 			
 		}
