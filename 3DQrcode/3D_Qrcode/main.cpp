@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 			//cout << Vt << endl;
 			cout << endl;
 			//cout << Ft << endl;
-			viewer.data.set_mesh(Vt, Ft);
+			//viewer.data.set_mesh(Vt, Ft);
 		});
 		// Generate menu
 		viewer.screen->performLayout();

@@ -23,9 +23,14 @@ bool qrcode::tranglate(Eigen::MatrixXd & V1, Eigen::MatrixXi & E1, Eigen::Matrix
 	for (int i = 0; i < E2.rows(); i++) {
 		E.row(C1.rows() + i) << IC2(2 * i) + E1.rows() - 1, IC2(2 * i + 1) + E1.rows() - 1;
 	}
-	cout << V << endl;
+	cout << V2 << endl;
 	cout << endl;
-	cout << E << endl;
+	cout << E2 << endl;
+	cout << endl;
+	cout << C2 << endl;
+	cout << endl;
+	cout << IA2 << endl << endl;;
+	cout << IC2 << endl;
 	//igl::triangle::triangulate(V,E,H,"a0.5q",_V,_F);
 	/**/
 	return false;
