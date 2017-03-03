@@ -23,6 +23,7 @@ namespace qrcode {
 	// @Param Eigen::MatrixXi & _F
 	//************************************
 	bool cutMesh(Eigen::MatrixXd &V, Eigen::MatrixXi &F, Eigen::MatrixXi &fid, Eigen::MatrixXd &_V, Eigen::MatrixXi &_F);
+	
 	//************************************
 	// Method:    qrcode::cutMesh
 	// Returns:   bool
@@ -31,12 +32,10 @@ namespace qrcode {
 	// @Param Eigen::MatrixXi & F
 	// @Param Eigen::MatrixXi & fid
 	// @Param Eigen::MatrixXd & _V
-	// @Param Eigen::MatrixXi & _F
-	// @Param Eigen::MatrixXd Ev
-	// @Param Eigen::MatrixXi Ef
-	// @Param Eigen::MatrixXi Ee
+	// @Param Eigen::MatrixXi &
+	// @Param Eigen::MatrixXi & Ee
 	//************************************
-	bool cutMesh(Eigen::MatrixXd &V,Eigen::MatrixXi &F,Eigen::MatrixXi &fid,Eigen::MatrixXd &_V,Eigen::MatrixXi &_F,Eigen::MatrixXd Ev,Eigen::MatrixXi Ef,Eigen::MatrixXi Ee);
+	bool cutMesh(Eigen::MatrixXd &V,Eigen::MatrixXi &F,Eigen::MatrixXi &fid,Eigen::MatrixXd &_V,Eigen::MatrixXi &_F,Eigen::MatrixXi &Ee);
 }
 #endif // !CULMESH_H_  
 

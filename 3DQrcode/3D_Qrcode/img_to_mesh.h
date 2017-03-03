@@ -28,6 +28,8 @@ namespace qrcode {
 	// @Param Eigen::MatrixXd & _V
 	// @Param Eigen::MatrixXi & _F
 	// @Param Eigen::MatrixXd & _C
+	// @Param Eigen::MatrixXi & _E
+	// @Param Eigen::MatrixXd & _H
 	//************************************
 	bool img_to_mesh(
 		igl::viewer::Viewer &viewer,
@@ -37,7 +39,9 @@ namespace qrcode {
 		Eigen::MatrixXi &fid,
 		Eigen::MatrixXd &_V,
 		Eigen::MatrixXi &_F,
-		Eigen::MatrixXd &_C
+		Eigen::MatrixXd &_C,
+		Eigen::MatrixXi &_E,
+		Eigen::MatrixXd &_H
 	);
 
 	//************************************
@@ -50,6 +54,6 @@ namespace qrcode {
 	// Parameter: Eigen::MatrixXi & F
 	// Parameter: Eigen::MatrixXd & C
 	//************************************
-	bool img_to_facet(Eigen::MatrixXi &D, Eigen::MatrixXi &F, Eigen::MatrixXd &C);
+	bool img_to_facet(Eigen::MatrixXi &D, Eigen::MatrixXi &F, Eigen::MatrixXd &C, Eigen::MatrixXi &E);
 }
 #endif // !IMGTOMESH_H_

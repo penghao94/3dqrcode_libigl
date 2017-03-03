@@ -17,30 +17,26 @@ qrcode::eList::~eList()
 	delete(head);
 }
 
-void qrcode::eList::add(int x, int y)
+void qrcode::eList::add(int x, int y,int z)
 {
 	eNode* node = new eNode();
 	node->s = x;
 	node->d = y;
+	node->id = z;
 	node->next = NULL;
 	eNode *index=NULL;
 	eNode *predex=NULL;
-	if (head ==NULL) {
+	if (head ==NULL) 
 		head = node;
-		cout << "head:" << head << endl;
-	}
 	else
 	{
 		index = head;
-		cout << "head:" << index << endl;
 		while (index!=NULL)
 		{
 			if (index->s!=node->d||index->d!=node->s)
 			{
 				predex = index;
 				index = index->next;
-				cout << "predex:" << predex << endl;
-				cout << "index:" << index << endl;
 			}
 			else
 			{
@@ -50,12 +46,10 @@ void qrcode::eList::add(int x, int y)
 					head = index->next;
 					delete(index);
 					delete(node);
-					//cout << "delete head" << endl;
 					return;
 				}
 				else
 				{
-					//cout << "delete other" << endl;
 					predex->next = index->next;
 					delete(index);
 					delete(node);
@@ -72,11 +66,11 @@ void qrcode::eList::add(int x, int y)
 
 void qrcode::eList::matrix(Eigen::MatrixXi &E)
 {
-	E.resize(0, 2);
+	E.resize(0, 3);
 	eNode *t = head;
 	while (head != NULL) {
-		E.conservativeResize(E.rows() + 1, 2);
-		E.row(E.rows() - 1) << head->s, head->d;
+		E.conservativeResize(E.rows() + 1, 3);
+		E.row(E.rows() - 1) << head->s, head->d,head->id;
 		head = head->next;
 	}
 	head = t;
