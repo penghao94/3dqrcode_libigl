@@ -11,6 +11,7 @@
 #include <nanogui/screen.h>
 #include <igl/unique.h>
 #include <igl/Timer.h>
+#include <igl/readOFF.h>
 //#include <igl/jet.h>
 
 using namespace igl;

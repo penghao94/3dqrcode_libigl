@@ -27,9 +27,6 @@ bool qrcode::tranglate(Eigen::MatrixXd & V1, Eigen::MatrixXi & E1, Eigen::Matrix
 	for (int i = 0; i < E2.rows(); i++) {
 		_E2.row(i) << IC2(i),IC2(E2.rows() + i);
 	}
-	cout << _V1 << endl << endl <<
-		_E1 << endl << endl <<
-		_V2 << endl << endl << _E2 << endl;
 	V.block(0, 0, _V1.rows(), 2) << _V1;
 	V.block(_V1.rows(), 0, _V2.rows(), 2) << _V2;
 	E.block(0, 0, _E1.rows(), 2) << _E1;

@@ -35,8 +35,6 @@ bool qrcode::img_to_mesh(igl::viewer::Viewer & viewer,
 				if (i == int(D.rows() / 2) && j ==int(D.cols() / 2)) {
 					_H << _v(0), _v(1), _v(2);
 				}
-					
-
 			}
 			else 
 				_V.row(i*D.cols() + j) << 0, 0, 0;
