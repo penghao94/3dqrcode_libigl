@@ -60,8 +60,8 @@ int main(int argc, char *argv[])
 			timer.start();
 			qrcode::cutMesh(V, F, fid, rest_V, rest_F, rest_E);
 			cout << "time = " << timer.getElapsedTime() << endl;
-			viewer.data.set_mesh(_V, _F);
-			viewer.data.set_colors(_C);
+			viewer.data.set_mesh(rest_V, rest_F);
+			//viewer.data.set_colors(_C);
 		});
 
 		viewer.ngui->addButton("Merge	QRCode", [&]() {
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 			Eigen::MatrixXi Ft,E;
 			timer.start();
 			igl::readOFF("F:/Graphics/git/3dqrcd_libigl/3DQrcode/3D_Qrcode/models/planexy.off", V, F);
-			qrcode::readData("F:/Graphics/git/3dqrcd_libigl/3DQrcode/3D_Qrcode/images/qrcode_64.png", D);
+			qrcode::readData("F:/Graphics/git/3dqrcd_libigl/3DQrcode/3D_Qrcode/images/qrcode_13.png", D);
 			qrcode::img_to_mesh(viewer, V, F, D, fid, _V, _F, _C, _E, _H);
 			qrcode::cutMesh(V, F, fid, rest_V, rest_F,rest_E);
 			cout << "time = " << timer.getElapsedTime() << endl;
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 			//cout << Vt << endl;
 			cout << endl;
 			//cout << Ft << endl;
-			//viewer.data.set_mesh(Vt, Ft);
+			viewer.data.set_mesh(Vt, Ft);
 		});
 		// Generate menu
 		viewer.screen->performLayout();
