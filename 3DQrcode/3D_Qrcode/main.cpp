@@ -80,8 +80,8 @@ int main(int argc, char *argv[])
 		viewer.ngui->addButton("Test", [&]() {
 			viewer.data.clear();
 			Eigen::MatrixXi fid;
-			Eigen::MatrixXd Vt,H;
-			Eigen::MatrixXi Ft,E;
+			Eigen::MatrixXd H,V_all;
+			Eigen::MatrixXi Ft,E,F_all;
 			timer.start();
 			igl::readOFF("F:/Graphics/git/3dqrcd_libigl/3DQrcode/3D_Qrcode/models/planexy.off", V, F);
 			qrcode::readData("F:/Graphics/git/3dqrcd_libigl/3DQrcode/3D_Qrcode/images/qrcode_13.png", D);
@@ -92,13 +92,17 @@ int main(int argc, char *argv[])
 			E = rest_E.block(0, 0, rest_E.rows(), 2);
 			H.resize(1, 2);
 			H.row(0) << _H(0, 0),_H(0,1);
-			qrcode::tranglate(_V, _E, V, E, H, Vt, Ft);
+			qrcode::tranglate(rest_V, E, _V, _E, H,Ft);
 			cout << "time = " << timer.getElapsedTime() << endl;
 			viewer.data.clear();
-			//cout << Vt << endl;
-			cout << endl;
-			//cout << Ft << endl;
-			viewer.data.set_mesh(Vt, Ft);
+			V_all.resize(V.rows() + _V.rows(),3);
+			F_all.resize(rest_F.rows() + _F.rows()+Ft.rows(),3);
+			V_all.block(0, 0, V.rows(), 3) << V;
+			V_all.block(V.rows(), 0, _V.rows(), 3) << _V;
+			F_all.block(0, 0, rest_F.rows(), 3) << rest_F;
+			F_all.block(rest_F.rows(), 0, _F.rows(), 3) << (_F.array()+rest_V.rows()).matrix();
+			F_all.block(rest_F.rows() + _F.rows(), 0, Ft.rows(), 3) << Ft;
+			viewer.data.set_mesh(V_all, F_all);
 		});
 		// Generate menu
 		viewer.screen->performLayout();
