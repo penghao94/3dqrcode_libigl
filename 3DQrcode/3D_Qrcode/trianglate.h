@@ -35,6 +35,23 @@ namespace qrcode {
 		Eigen::MatrixXd &H,
 		Eigen::MatrixXd &_V,
 		Eigen::MatrixXi &_F);
+	//************************************
+	// Method:    qrcode::tranglate
+	// Returns:   bool
+	//
+	// @Param Eigen::MatrixXd & V1
+	// @Param Eigen::MatrixXi & E1
+	// @Param Eigen::MatrixXd & V2
+	// @Param Eigen::MatrixXi & E2
+	// @Param Eigen::MatrixXd & H
+	// @Param Eigen::MatrixXi & _F
+	//************************************
+	bool tranglate(Eigen::MatrixXd &V1,
+		Eigen::MatrixXi &E1,
+		Eigen::MatrixXd &V2,
+		Eigen::MatrixXi &E2,
+		Eigen::MatrixXd &H,
+		Eigen::MatrixXi &F);
 
-	}
+}
 #endif // !TRANGLATE_H_
