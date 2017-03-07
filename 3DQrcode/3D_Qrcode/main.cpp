@@ -13,9 +13,18 @@
 #include <igl/Timer.h>
 #include <igl/readOFF.h>
 //#include <igl/jet.h>
-
+#include "QrCode.hpp"
+#include "qrcodeGenerator.h"
 using namespace igl;
-
+static void printQr(const qrcodegen::QrCode &qr) {
+	int border = 4;
+	for (int y = -border; y < qr.size + border; y++) {
+		for (int x = -border; x < qr.size + border; x++) {
+			std::cout << (qr.getModule(x, y) == 1 ? "##" : "  ");
+		}
+		std::cout << std::endl;
+	}
+}
 int main(int argc, char *argv[])
 {
 	// Initiate viewer
@@ -52,6 +61,18 @@ int main(int argc, char *argv[])
 
 
 		viewer.ngui->addGroup("Qrcode Operator");
+		viewer.ngui->addButton("QR mesh", [&]() {
+			viewer.data.clear();
+			Eigen::MatrixXi  fid;
+			timer.start();
+			qrcode::img_to_mesh(viewer, V, F, D, fid, _V, _F, _C, _E, _H);
+			cout << "time = " << timer.getElapsedTime() << endl;
+			timer.start();
+			qrcode::cutMesh(V, F, fid, rest_V, rest_F, rest_E);
+			cout << "time = " << timer.getElapsedTime() << endl;
+			viewer.data.set_mesh(_V, _F);
+			viewer.data.set_colors(_C);
+		});
 		viewer.ngui->addButton("QR unproject", [&]() {
 			viewer.data.clear();
 			Eigen::MatrixXi  fid;
@@ -64,18 +85,36 @@ int main(int argc, char *argv[])
 			viewer.data.set_mesh(rest_V, rest_F);
 			//viewer.data.set_colors(_C);
 		});
-
-		viewer.ngui->addButton("Merge	QRCode", [&]() {
-			Eigen::MatrixXd Vt, H;
-			Eigen::MatrixXi Ft, E;
+		viewer.ngui->addButton("triangulation", [&]() {
+			Eigen::MatrixXd Vt, H, V_all;
+			Eigen::MatrixXi Ft, E, F_all;
 			timer.start();
+			E = rest_E.block(0, 0, rest_E.rows(), 2);
 			H.resize(1, 2);
 			H.row(0) << _H(0, 0), _H(0, 1);
-			E = rest_E.block(0, 0, rest_E.rows(), 2);
-			qrcode::tranglate(_V, _E, V, E, H, Vt, Ft);
+			qrcode::tranglate(rest_V, E, _V, _E, H, Vt,Ft);
 			cout << "time = " << timer.getElapsedTime() << endl;
 			viewer.data.clear();
 			viewer.data.set_mesh(Vt, Ft);
+		});
+		viewer.ngui->addButton("Merge	QRCode", [&]() {
+			Eigen::MatrixXd Vt, H,V_all;
+			Eigen::MatrixXi Ft, E,F_all;
+			timer.start();
+			E = rest_E.block(0, 0, rest_E.rows(), 2);
+			H.resize(1, 2);
+			H.row(0) << _H(0, 0), _H(0, 1);
+			qrcode::tranglate(rest_V, E, _V, _E, H, Ft);
+			cout << "time = " << timer.getElapsedTime() << endl;
+			viewer.data.clear();
+			V_all.resize(rest_V.rows() + _V.rows(), 3);
+			F_all.resize(rest_F.rows() + _F.rows() + Ft.rows(), 3);
+			V_all.block(0, 0, V.rows(), 3) << V;
+			V_all.block(V.rows(), 0, _V.rows(), 3) << _V;
+			F_all.block(0, 0, rest_F.rows(), 3) << rest_F;
+			F_all.block(rest_F.rows(), 0, _F.rows(), 3) << (_F.array() + rest_V.rows()).matrix();
+			F_all.block(rest_F.rows() + _F.rows(), 0, Ft.rows(), 3) << Ft;
+			viewer.data.set_mesh(V_all, F_all);
 		});
 		viewer.ngui->addButton("Test", [&]() {
 			viewer.data.clear();
@@ -84,7 +123,7 @@ int main(int argc, char *argv[])
 			Eigen::MatrixXi Ft,E,F_all;
 			timer.start();
 			igl::readOFF("F:/Graphics/git/3dqrcd_libigl/3DQrcode/3D_Qrcode/models/planexy.off", V, F);
-			qrcode::readData("F:/Graphics/git/3dqrcd_libigl/3DQrcode/3D_Qrcode/images/qrcode_13.png", D);
+			qrcode::readData("F:/Graphics/git/3dqrcd_libigl/3DQrcode/3D_Qrcode/images/qrcode_64.png", D);
 			qrcode::img_to_mesh(viewer, V, F, D, fid, _V, _F, _C, _E, _H);
 			qrcode::cutMesh(V, F, fid, rest_V, rest_F,rest_E);
 			cout << "time = " << timer.getElapsedTime() << endl;
@@ -95,12 +134,39 @@ int main(int argc, char *argv[])
 			qrcode::tranglate(rest_V, E, _V, _E, H,Ft);
 			cout << "time = " << timer.getElapsedTime() << endl;
 			viewer.data.clear();
-			V_all.resize(V.rows() + _V.rows(),3);
+			V_all.resize(rest_V.rows() + _V.rows(),3);
 			F_all.resize(rest_F.rows() + _F.rows()+Ft.rows(),3);
 			V_all.block(0, 0, V.rows(), 3) << V;
 			V_all.block(V.rows(), 0, _V.rows(), 3) << _V;
 			F_all.block(0, 0, rest_F.rows(), 3) << rest_F;
 			F_all.block(rest_F.rows(), 0, _F.rows(), 3) << (_F.array()+rest_V.rows()).matrix();
+			F_all.block(rest_F.rows() + _F.rows(), 0, Ft.rows(), 3) << Ft;
+			viewer.data.set_mesh(V_all, F_all);
+		});
+		viewer.ngui->addButton("Test qrcode", [&]() {
+			viewer.data.clear();
+			Eigen::MatrixXi fid;
+			Eigen::MatrixXd H, V_all,_D;
+			Eigen::MatrixXi Ft, E, F_all;
+			timer.start();
+			igl::readOFF("F:/Graphics/git/3dqrcd_libigl/3DQrcode/3D_Qrcode/models/planexy.off", V, F);
+			int scale=qrcode::readData("F:/Graphics/git/3dqrcd_libigl/3DQrcode/3D_Qrcode/images/qrcode.txt", _D);
+			qrcode::img_to_mesh(viewer, V, F, _D,scale, fid, _V, _F, _C, _E, _H);
+			qrcode::cutMesh(V, F, fid, rest_V, rest_F, rest_E);
+			cout << "time = " << timer.getElapsedTime() << endl;
+			timer.start();
+			E = rest_E.block(0, 0, rest_E.rows(), 2);
+			H.resize(1, 2);
+			H.row(0) << _H(0, 0), _H(0, 1);
+			qrcode::tranglate(rest_V, E, _V, _E, H, Ft);
+			cout << "time = " << timer.getElapsedTime() << endl;
+			viewer.data.clear();
+			V_all.resize(rest_V.rows() + _V.rows(), 3);
+			F_all.resize(rest_F.rows() + _F.rows() + Ft.rows(), 3);
+			V_all.block(0, 0, V.rows(), 3) << V;
+			V_all.block(V.rows(), 0, _V.rows(), 3) << _V;
+			F_all.block(0, 0, rest_F.rows(), 3) << rest_F;
+			F_all.block(rest_F.rows(), 0, _F.rows(), 3) << (_F.array() + rest_V.rows()).matrix();
 			F_all.block(rest_F.rows() + _F.rows(), 0, Ft.rows(), 3) << Ft;
 			viewer.data.set_mesh(V_all, F_all);
 		});
