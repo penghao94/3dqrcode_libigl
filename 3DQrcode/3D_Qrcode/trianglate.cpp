@@ -2,6 +2,7 @@
 #include <igl/triangle/triangulate.h>
 #include<igl/unique.h>
 #include<iostream>
+
 bool qrcode::tranglate(Eigen::MatrixXd & V1, Eigen::MatrixXi & E1, Eigen::MatrixXd & V2, Eigen::MatrixXi & E2, Eigen::MatrixXd & H, Eigen::MatrixXd &_V, Eigen::MatrixXi &_F)
 {
 	using namespace std;
@@ -72,7 +73,7 @@ bool qrcode::tranglate(Eigen::MatrixXd & V1, Eigen::MatrixXi & E1, Eigen::Matrix
 	F.resize(_F.rows(), 3);
 	for (int i = 0; i < _F.rows(); i++) {
 		for (int j = 0; j < 3; j++) {
-			F(i, j) << I(_F(i, j), 0);
+			F(i, j) = I(_F(i, j), 0);
 		}
 	}
 	return false;
