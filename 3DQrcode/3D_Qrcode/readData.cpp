@@ -1,6 +1,7 @@
 
 #include "readData.h"
 #include <igl\file_dialog_open.h>
+#include "qrcodeGenerator.h"
 bool qrcode::readData(Eigen::MatrixXi & D)
 {
 	std::string input ="";
@@ -10,6 +11,16 @@ bool qrcode::readData(Eigen::MatrixXi & D)
 		return true;
 	}else
 		return false;
+}
+
+int qrcode::readData(Eigen::MatrixXd & D)
+{
+	std::string input = "";
+	input = igl::file_dialog_open();
+	if (input != "")
+		return readData(input, D);
+	else
+		return 0;
 }
 
 bool qrcode::readData(const std::string file, Eigen::MatrixXi & D)
@@ -46,4 +57,41 @@ bool qrcode::readData(const std::string file, Eigen::MatrixXi & D)
 	B.resize(0,0);
 	A.resize(0,0);
 	return true;
+}
+
+int qrcode::readData(const std::string file, Eigen::MatrixXd & D)
+{
+	int mask = 0;
+	int border = 1;
+	int errColLvl = 0;
+	int scale = 1;
+	char text[1024];
+	const char* input = file.c_str();
+	FILE* in = fopen(input, "r");
+	if (in == (FILE*)NULL) {
+		printf("Cannot open the qrcode info file...");
+		return 0;
+	}
+	else {
+		fscanf(in, "%d %d %d %d\n", &errColLvl, &mask, &border,&scale);
+		fscanf(in, "%s\n", &text);
+		std::string str = text;
+		switch (errColLvl)
+		{
+		case 0:
+			qrCodeGenerator(str, qrcodegen::QrCode::Ecc::LOW, mask, border, D);
+			break;
+		case 1:
+			qrCodeGenerator(str, qrcodegen::QrCode::Ecc::MEDIUM, mask, border, D);
+			break;
+		case 2:
+			qrCodeGenerator(str, qrcodegen::QrCode::Ecc::QUARTILE, mask, border, D);
+			break;
+		case 3:
+			qrCodeGenerator(str, qrcodegen::QrCode::Ecc::HIGH, mask, border, D);
+			break;
+		}
+		return scale;
+	}
+	
 }

@@ -22,6 +22,13 @@ namespace qrcode {
 	// @Param: Eigen::MatrixXi & D
 	//************************************
 	bool readData(Eigen::MatrixXi &D);
+	//************************************
+	// Method:    qrcode::readData
+	// Returns:   bool
+	//
+	// @Param Eigen::MatrixXd & D
+	//************************************
+	int readData(Eigen::MatrixXd &D);
 
 	//************************************
 	// Method:    qrcode::readData
@@ -31,6 +38,14 @@ namespace qrcode {
 	// @Param: Eigen::MatrixXi & D
 	//************************************
 	bool readData(const std::string file, Eigen::MatrixXi &D);
+	//************************************
+	// Method:    qrcode::readData
+	// Returns:   int
+	//
+	// @Param const std::string file
+	// @Param Eigen::MatrixXd & D
+	//************************************
+	int readData(const std::string file, Eigen::MatrixXd &D);
 }
 #endif // !READDATA_H_
 
