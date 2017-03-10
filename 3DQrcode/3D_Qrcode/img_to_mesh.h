@@ -72,6 +72,35 @@ namespace qrcode {
 		Eigen::MatrixXd &_H
 	);
 	//************************************
+	// Method:    qrcode::img_to_sep_mesh
+	// Returns:   int
+	//
+	// @Param igl::viewer::Viewer & viewer
+	// @Param Eigen::MatrixXd & V
+	// @Param Eigen::MatrixXi & F
+	// @Param Eigen::MatrixXd & D
+	// @Param int scale
+	// @Param Eigen::MatrixXi & fid
+	// @Param Eigen::MatrixXd & _V
+	// @Param Eigen::MatrixXi & _F
+	// @Param Eigen::MatrixXd & _C
+	// @Param Eigen::MatrixXi & _E
+	// @Param Eigen::MatrixXd & _H
+	//************************************
+	int img_to_sep_mesh(
+		igl::viewer::Viewer &viewer,
+		Eigen::MatrixXd &V,
+		Eigen::MatrixXi &F,
+		Eigen::MatrixXd &D,
+		int scale,
+		Eigen::MatrixXi &fid,
+		Eigen::MatrixXd &_V,
+		Eigen::MatrixXi &_F,
+		Eigen::MatrixXd &_C,
+		Eigen::MatrixXi &_E,
+		Eigen::MatrixXd &_H
+	);
+	//************************************
 	// Method:    img_to_facet
 	// FullName:  qrcode::img_to_facet
 	// Access:    public 
@@ -93,6 +122,6 @@ namespace qrcode {
 	// @Param Eigen::MatrixXi & E
 	//************************************
 	bool img_to_facet(Eigen::MatrixXd &D, Eigen::MatrixXi &F, Eigen::MatrixXd &C, Eigen::MatrixXi &E);
-
+	bool img_to_sep_facet(Eigen::MatrixXd &D, Eigen::MatrixXi &F, Eigen::MatrixXd &C, Eigen::MatrixXi &E);
 }
 #endif // !IMGTOMESH_H_
