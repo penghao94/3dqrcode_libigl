@@ -8,6 +8,7 @@ bool qrcode::qrCodeGenerator(std::string text, const qrcodegen::QrCode::Ecc & er
 	Q.resize(2 * border + qr.size, 2 * border + qr.size);
 	for (int i = -border; i < qr.size + border; i++) {
 		for (int j = -border; j < qr.size + border; j++) {
+			//1 is black block
 			Q(i+border, j+border) = (qr.getModule(j, i) == 1 ? 1.0 : 0.0);
 		}
 	}
