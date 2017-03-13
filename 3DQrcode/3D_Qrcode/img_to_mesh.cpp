@@ -2,7 +2,7 @@
 #include "igl/unproject_onto_mesh.h"
 #include "igl/unique.h"
 #include <iostream>
-
+#include "unproject_to_mesh.h"
 bool qrcode::img_to_mesh(igl::viewer::Viewer & viewer, 
 	Eigen::MatrixXd & V, 
 	Eigen::MatrixXi & F, 
@@ -84,15 +84,16 @@ bool qrcode::img_to_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, Eige
 	return true;
 }
 
-int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::MatrixXd & D, int scale, Eigen::MatrixXi & fid, Eigen::MatrixXd & _V, Eigen::MatrixXi & _F, Eigen::MatrixXd & _C, Eigen::MatrixXi & _E, Eigen::MatrixXd & _H)
+int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::MatrixXd & D, int scale, Eigen::MatrixXi & fid, Eigen::MatrixXd & _V, Eigen::MatrixXi & _F, Eigen::MatrixXd & _C, Eigen::MatrixXi & _E, Eigen::MatrixXd & _H, Eigen::MatrixXf &Src,Eigen::MatrixXf &Dir,Eigen::MatrixXd &L)
 {
 	using namespace std;
 	Eigen::MatrixXd r, c,IV, wht_V,blk_V,wht_C,blk_C,adj_C;
 	Eigen::MatrixXi wht_F, blk_F,S,T,adj_F,a_F,IA,IC;
-	Eigen::Vector3f _uv;
+	Eigen::Vector3f _uv,s,dir;
 	Eigen::Vector3d v0, v1, v2, _v;
 	double CENT_X = viewer.core.viewport(2) / 2;
 	double CENT_Y = viewer.core.viewport(3) / 2;
+	double t;
 	int w_blk = 0;//count of white block
 	int b_blk = 0;//count of black block
 	int sep_pnt = 0;//count of separate point
@@ -107,7 +108,10 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 	D.block(0, D.cols() - 1, D.rows(), 1) << r;
 	D.block(D.rows() - 1, 0, 1, D.cols()) << c;
 	IV.resize(D.rows()*D.cols(), 3);
+	Src.resize(D.rows()*D.cols(), 3);
+	Dir.resize(D.rows()*D.cols(), 3);
 	fid.resize(D.rows(), D.cols());
+	L.resize(D.rows(), D.cols());
 	_E.resize(4 * (D.rows() - 1), 2);
 	_H.resize(1, 3);
 	S.resize(D.rows()*D.cols(),1);
@@ -121,15 +125,19 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 	for (int i = 0; i < D.rows(); i++) {
 		for (int j = 0; j < D.cols(); j++) {
 
-			double x = i*scale + CENT_X - D.rows() / 2;
-			double y = CENT_Y - D.cols() / 2 + j*scale;
-			if (igl::unproject_onto_mesh(Eigen::Vector2f(x, y), viewer.core.view*viewer.core.model,
-				viewer.core.proj, viewer.core.viewport, V, F, fid(i, j), _uv)) {
+			double x = (i - D.rows() / 2) *scale + CENT_X ;
+			double y = -(D.rows() / 2 - j)*scale + CENT_Y;
+			cout << "X:" << x << "  " << "Y:" << y << endl;
+			if (unproject_to_mesh(Eigen::Vector2f(x, y), viewer.core.view*viewer.core.model,
+				viewer.core.proj, viewer.core.viewport, V, F,s,dir, fid(i, j), _uv,t)) {
 				v0 = V.row(F(fid(i, j), 0));
 				v1 = V.row(F(fid(i, j), 1));
 				v2 = V.row(F(fid(i, j), 2));
 				_v = _uv(0)*v0 + _uv(1)*v1 + _uv(2)*v2;
 				IV.row(i*D.cols() + j) << _v(0), _v(1), _v(2);
+				Src.row(i*D.cols() + j) << s.transpose();
+				Dir.row(i*D.cols() + j) << dir.transpose();
+				L(i, j) = t;
 				if (i == int(D.rows() / 2) && j == int(D.cols() / 2)) {
 					_H << _v(0), _v(1), _v(2);
 				}
@@ -168,10 +176,6 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 	blk_F.resize(2 * b_blk, 3);
 	blk_C.resize(2 * b_blk, 3);
 	a_F.resize(8 * b_blk, 3);
-	cout << w_blk << endl;
-	cout << b_blk << endl;
-	cout << sep_pnt << endl;
-
 	for (int i = 0; i < D.rows(); i++) {
 		for (int j = 0; j < D.cols(); j++) {
 			if(S(i*D.cols()+j)!=-1)
@@ -306,7 +310,7 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 	_C.block(0, 0, wht_C.rows(), 3) = wht_C;
 	_C.block(wht_C.rows(), 0, blk_C.rows(), 3) = blk_C;
 	_C.block(wht_C.rows() + blk_C.rows(), 0, adj_C.rows(), 3) = adj_C;
-	return w_blk;
+	return wht_V.rows();
 }
 
 bool qrcode::img_to_facet(Eigen::MatrixXi & D, Eigen::MatrixXi & F, Eigen::MatrixXd & C,Eigen::MatrixXi &E)

@@ -70,6 +70,7 @@ namespace qrcode {
 		Eigen::MatrixXd &_C,
 		Eigen::MatrixXi &_E,
 		Eigen::MatrixXd &_H
+
 	);
 	//************************************
 	// Method:    qrcode::img_to_sep_mesh
@@ -98,7 +99,10 @@ namespace qrcode {
 		Eigen::MatrixXi &_F,
 		Eigen::MatrixXd &_C,
 		Eigen::MatrixXi &_E,
-		Eigen::MatrixXd &_H
+		Eigen::MatrixXd &_H,
+		Eigen::MatrixXf &Src,
+		Eigen::MatrixXf &Dir,
+		Eigen::MatrixXd &L
 	);
 	//************************************
 	// Method:    img_to_facet
