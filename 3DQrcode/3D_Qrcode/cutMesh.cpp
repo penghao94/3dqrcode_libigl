@@ -30,12 +30,12 @@ bool qrcode::cutMesh(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::MatrixXi &
 		elist->add(rest_F(i, 1), rest_F(i, 2), id);
 		elist->add(rest_F(i, 2), rest_F(i, 0), id);
 	}
-	elist->matrix(Ee);
+	elist->matrix(temp);
 
 
 	igl::unique(rest_F, V_r);
-	temp = Ee.block(0, 0, Ee.rows(), 2);
-	igl::unique(temp, V_e);
+	Ee = temp.block(0, 0, temp.rows(), 2);
+	igl::unique(Ee, V_e);
 	_V = V;
 	V_e.conservativeResize(V_e.rows() + 1);
 	V_e(V_e.rows() - 1) = -1;
@@ -79,12 +79,12 @@ bool qrcode::cutMesh(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::MatrixXi &
 		elist->add(rest_F(i, 1), rest_F(i, 2), id);
 		elist->add(rest_F(i, 2), rest_F(i, 0), id);
 	}
-	elist->matrix(Ee);
+	elist->matrix(temp);
 
 
 	igl::unique(rest_F, V_r);
-	temp = Ee.block(0, 0, Ee.rows(), 2);
-	igl::unique(temp, V_e);
+	Ee = temp.block(0, 0, temp.rows(), 2);
+	igl::unique(Ee, V_e);
 	_V = V;
 	V_e.conservativeResize(V_e.rows() + 1);
 	V_e(V_e.rows() - 1) = -1;

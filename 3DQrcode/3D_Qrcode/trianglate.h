@@ -51,6 +51,7 @@ namespace qrcode {
 		Eigen::MatrixXd &V2,
 		Eigen::MatrixXi &E2,
 		Eigen::MatrixXd &H,
+		Eigen::Matrix4f &mode,
 		Eigen::MatrixXi &F);
 
 }

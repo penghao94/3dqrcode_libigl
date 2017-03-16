@@ -18,5 +18,6 @@ bool qrcode::curve_down(Eigen::MatrixXd & V, Eigen::MatrixXd & D, Eigen::MatrixX
 			}
 		}
 	}
+	cout << "Thickness:" << addT(0, 0)*Dir.row(0).col(2) << endl;
 	return false;
 }

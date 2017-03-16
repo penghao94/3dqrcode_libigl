@@ -94,6 +94,7 @@ namespace qrcode {
 		Eigen::MatrixXi &F,
 		Eigen::MatrixXd &D,
 		int scale,
+		int acc,
 		Eigen::MatrixXi &fid,
 		Eigen::MatrixXd &_V,
 		Eigen::MatrixXi &_F,
