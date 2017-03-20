@@ -5,7 +5,7 @@ bool qrcode::qrCodeGenerator(std::string text, const qrcodegen::QrCode::Ecc & er
 	const char*str = text.c_str();
 	const qrcodegen::QrCode _qr = qrcodegen::QrCode::encodeText(str, errColLvl);
 	qrcodegen::QrCode qr = qrcodegen::QrCode(_qr, mask);
-	Q.setOnes(2 * border + qr.size + 1, 2 * border + qr.size + 1);
+	Q.setZero(2 * border + qr.size + 1, 2 * border + qr.size + 1);
 	for (int i = -border; i < qr.size + border; i++) {
 		for (int j = -border; j < qr.size + border; j++) {
 			//1 is black block

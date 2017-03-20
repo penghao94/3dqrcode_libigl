@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	int scale = 0;
 	Eigen::MatrixXd D;
 	//Parameters of qrcode image to mesh
-	int acc = 1;					//accuracy of projection
+	int acc = 2       ;					//accuracy of projection
 	Eigen::MatrixXi F_hit;			//face id hit by ray
 	Eigen::MatrixXd V_uncrv;		// vertex matrix uncarved
 	Eigen::MatrixXi F_qr;
@@ -157,135 +157,6 @@ int main(int argc, char *argv[])
 			cout << "Merge time = " << timer.getElapsedTime() << endl;
 
 		});
-
-
-
-
-
-
-
-
-
-
-
-		/*viewer.ngui->addButton("QR mesh", [&]() {
-			viewer.data.clear();
-			Eigen::MatrixXi  fid;
-			timer.start();
-			qrcode::img_to_mesh(viewer, V, F, D, fid, _V, _F, _C, _E, _H);
-			cout << "time = " << timer.getElapsedTime() << endl;
-			timer.start();
-			qrcode::cutMesh(V, F, fid, rest_V, rest_F, rest_E);
-			cout << "time = " << timer.getElapsedTime() << endl;
-			viewer.data.set_mesh(_V, _F);
-			viewer.data.set_colors(_C);
-		});
-		viewer.ngui->addButton("QR unproject", [&]() {
-			viewer.data.clear();
-			Eigen::MatrixXi  fid;
-			timer.start();
-			qrcode::img_to_mesh(viewer, V, F, D, fid, _V, _F, _C,_E,_H);
-			cout << "time = " << timer.getElapsedTime() << endl;
-			timer.start();
-			qrcode::cutMesh(V, F, fid, rest_V, rest_F, rest_E);
-			cout << "time = " << timer.getElapsedTime() << endl;
-			viewer.data.set_mesh(rest_V, rest_F);
-			//viewer.data.set_colors(_C);
-		});
-		viewer.ngui->addButton("triangulation", [&]() {
-			Eigen::MatrixXd Vt, H, V_all;
-			Eigen::MatrixXi Ft, E, F_all;
-			timer.start();
-			E = rest_E.block(0, 0, rest_E.rows(), 2);
-			H.resize(1, 2);
-			H.row(0) << _H(0, 0), _H(0, 1);
-			qrcode::tranglate(rest_V, E, _V, _E, H, Vt,Ft);
-			cout << "time = " << timer.getElapsedTime() << endl;
-			viewer.data.clear();
-			viewer.data.set_mesh(Vt, Ft);
-		});
-		viewer.ngui->addButton("Merge	QRCode", [&]() {
-			Eigen::MatrixXd Vt, H,V_all;
-			Eigen::MatrixXi Ft, E,F_all;
-			timer.start();
-			E = rest_E.block(0, 0, rest_E.rows(), 2);
-			H.resize(1, 2);
-			H.row(0) << _H(0, 0), _H(0, 1);
-			qrcode::tranglate(rest_V, E, _V, _E, H, Ft);
-			cout << "time = " << timer.getElapsedTime() << endl;
-			viewer.data.clear();
-			V_all.resize(rest_V.rows() + _V.rows(), 3);
-			F_all.resize(rest_F.rows() + _F.rows() + Ft.rows(), 3);
-			V_all.block(0, 0, V.rows(), 3) << V;
-			V_all.block(V.rows(), 0, _V.rows(), 3) << _V;
-			F_all.block(0, 0, rest_F.rows(), 3) << rest_F;
-			F_all.block(rest_F.rows(), 0, _F.rows(), 3) << (_F.array() + rest_V.rows()).matrix();
-			F_all.block(rest_F.rows() + _F.rows(), 0, Ft.rows(), 3) << Ft;
-			viewer.data.set_mesh(V_all, F_all);
-		});
-		viewer.ngui->addButton("Test", [&]() {
-			viewer.data.clear();
-			Eigen::MatrixXi fid;
-			Eigen::MatrixXd H,V_all;
-			Eigen::MatrixXi Ft,E,F_all;
-			timer.start();
-			igl::readOFF("F:/Graphics/git/3dqrcd_libigl/3DQrcode/3D_Qrcode/models/cylinder.off", V, F);
-			qrcode::readData("F:/Graphics/git/3dqrcd_libigl/3DQrcode/3D_Qrcode/images/qrcode_64.png", D);
-			qrcode::img_to_mesh(viewer, V, F, D, fid, _V, _F, _C, _E, _H);
-			qrcode::cutMesh(V, F, fid, rest_V, rest_F,rest_E);
-			cout << "time = " << timer.getElapsedTime() << endl;
-			timer.start();
-			E = rest_E.block(0, 0, rest_E.rows(), 2);
-			H.resize(1, 2);
-			H.row(0) << _H(0, 0),_H(0,1);
-			qrcode::tranglate(rest_V, E, _V, _E, H,Ft);
-			cout << "time = " << timer.getElapsedTime() << endl;
-			viewer.data.clear();
-			V_all.resize(rest_V.rows() + _V.rows(),3);
-			F_all.resize(rest_F.rows() + _F.rows()+Ft.rows(),3);
-			V_all.block(0, 0, V.rows(), 3) << V;
-			V_all.block(V.rows(), 0, _V.rows(), 3) << _V;
-			F_all.block(0, 0, rest_F.rows(), 3) << rest_F;
-			F_all.block(rest_F.rows(), 0, _F.rows(), 3) << (_F.array()+rest_V.rows()).matrix();
-			F_all.block(rest_F.rows() + _F.rows(), 0, Ft.rows(), 3) << Ft;
-			viewer.data.set_mesh(V_all, F_all);
-		});
-		viewer.ngui->addButton("Test qrcode", [&]() {
-			viewer.data.clear();
-			Eigen::MatrixXi fid;
-			Eigen::MatrixXd H, V_all,_D,L,temp_V,addT;
-			Eigen::MatrixXi Ft, E, F_all,S;
-			Eigen::MatrixXf Src, Dir;
-			timer.start();
-			igl::readOFF("F:/Graphics/git/3dqrcd_libigl/3DQrcode/3D_Qrcode/images/cylinder.off", V, F);
-			int scale=qrcode::readData("F:/Graphics/git/3dqrcd_libigl/3DQrcode/3D_Qrcode/images/qrcode.txt", _D);
-			int wht_num=qrcode::img_to_sep_mesh(viewer, V, F, _D, scale, fid, temp_V, _F, _C, _E, _H, Src, Dir, L);
-			addT.resize(L.rows(), L.cols());
-			addT.setConstant(0.0005);
-			qrcode::curve_down(temp_V, _D, Src, Dir, L, wht_num, addT, _V);
-			qrcode::cutMesh(V, F, fid, rest_V, rest_F, rest_E);
-			cout << "time = " << timer.getElapsedTime() << endl;
-			timer.start();
-			E = rest_E.block(0, 0, rest_E.rows(), 2);
-			H.resize(1, 2);
-			H.row(0) << _H(0, 0), _H(0, 1);
-			qrcode::tranglate(rest_V, E, _V, _E, H, Ft);
-			cout << "time = " << timer.getElapsedTime() << endl;
-			viewer.data.clear();
-			V_all.resize(rest_V.rows() + _V.rows(), 3);
-			F_all.resize(rest_F.rows() + _F.rows() + Ft.rows(), 3);
-			V_all.block(0, 0, V.rows(), 3) << V;
-			V_all.block(V.rows(), 0, _V.rows(), 3) << _V;
-			F_all.block(0, 0, rest_F.rows(), 3) << rest_F;
-			F_all.block(rest_F.rows(), 0, _F.rows(), 3) << (_F.array() + rest_V.rows()).matrix();
-			F_all.block(rest_F.rows() + _F.rows(), 0, Ft.rows(), 3) << Ft;
-			viewer.data.set_mesh(V_all,F_all);
-			//viewer.data.set_mesh(_V, _F);
-			//viewer.data.set_colors(_C);
-			Eigen::MatrixXd C_all;
-			C_all = Eigen::RowVector3d(1.0, 1.0, 1.0).replicate(F_all.rows(), 1);
-			viewer.data.set_colors(C_all);
-		});*/
 		// Generate menu
 		viewer.screen->performLayout();
 

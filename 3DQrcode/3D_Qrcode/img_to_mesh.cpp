@@ -38,7 +38,7 @@ bool qrcode::img_to_mesh(igl::viewer::Viewer & viewer,
 				}
 			}
 			else 
-				_V.row(i*D.cols() + j) << 0, 0, 0;
+				_V.row(i*D.cols() + j) << _V.row(i*D.cols() + j-1);
 		}
 	}
 	img_to_facet(D, _F, _C,_E);
@@ -130,7 +130,7 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 			if (i%mul == 0 && j%mul == 0) {
 				int m = i / mul;
 				int n = j / mul;
-				if (shoot) {
+				//if (shoot) {
 					v0 = V.row(F(fid(i, j), 0));
 					v1 = V.row(F(fid(i, j), 1));
 					v2 = V.row(F(fid(i, j), 2));
@@ -142,9 +142,14 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 					if (m == int(D.rows() / 2) && n == int(D.cols() / 2)) {
 						_H << _v(0), _v(1),_v(2);
 					}
-				}
-				else 
+				//}
+				/*else {
 					IV.row(m*D.cols() + n) << 0, 0, 0;
+					cout << IV.row(m*D.cols() + n) << endl;
+					cout << fid(i, j) << endl;
+					cout << _uv << endl;
+				}*/
+					
 			
 				if (D(m, n) == 0 && m < D.rows() - 1 && n < D.cols() - 1) {
 					w_blk++;
