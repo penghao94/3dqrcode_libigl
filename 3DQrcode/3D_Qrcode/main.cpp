@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
 	Eigen::MatrixXd C;
 	int scale = 0;
 	Eigen::MatrixXd D;
+	Eigen::MatrixXi _D;
 	//Parameters of qrcode image to mesh
 	int acc = 2       ;					//accuracy of projection
 	Eigen::MatrixXi F_hit;			//face id hit by ray
@@ -95,7 +96,9 @@ int main(int argc, char *argv[])
 
 		// Add a button
 		viewer.ngui->addButton("Load Qrcode", [&]() {
-			scale=qrcode::readData(D);
+			qrcode::readData(_D);
+			scale = 1;
+			D = _D.cast<double>();
 		});
 
 		// Add a button

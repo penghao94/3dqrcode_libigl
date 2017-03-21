@@ -5,25 +5,27 @@
 #include <igl/viewer/Viewer.h>
 #include <igl/jet.h>
 #include "tutorial_shared_path.h"
-
+#include <iostream>
+using namespace std;
 int main(int argc, char *argv[])
 {
   using namespace Eigen;
   using namespace std;
   MatrixXd V;
   MatrixXi F;
-  igl::readOFF(TUTORIAL_SHARED_PATH "/bumpy.off",V,F);
+  igl::readOFF(TUTORIAL_SHARED_PATH "/bunny.off",V,F);
 
   VectorXd K;
   // Compute integral of Gaussian curvature
   igl::gaussian_curvature(V,F,K);
-  // Compute mass matrix
+  cout << K << endl;
+   //Compute mass matrix
   SparseMatrix<double> M,Minv;
   igl::massmatrix(V,F,igl::MASSMATRIX_TYPE_DEFAULT,M);
   igl::invert_diag(M,Minv);
   // Divide by area to get integral average
   K = (Minv*K).eval();
-
+  cout << K << endl;
   // Compute pseudocolor
   MatrixXd C;
   igl::jet(K,true,C);

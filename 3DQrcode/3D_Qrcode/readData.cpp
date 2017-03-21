@@ -2,15 +2,15 @@
 #include "readData.h"
 #include <igl\file_dialog_open.h>
 #include "qrcodeGenerator.h"
-bool qrcode::readData(Eigen::MatrixXi & D)
+int qrcode::readData(Eigen::MatrixXi & D)
 {
 	std::string input ="";
+	int scale = 0;
 	input = igl::file_dialog_open();
 	if (input != "") {
-		readData(input, D);
-		return true;
+		return readData(input, D);
 	}else
-		return false;
+		return scale ;
 }
 
 int qrcode::readData(Eigen::MatrixXd & D)
@@ -23,7 +23,7 @@ int qrcode::readData(Eigen::MatrixXd & D)
 		return 0;
 }
 
-bool qrcode::readData(const std::string file, Eigen::MatrixXi & D)
+int qrcode::readData(const std::string file, Eigen::MatrixXi & D)
 {
 	int cols, rows, n;
 	Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic>R, G, B, A;
@@ -49,14 +49,14 @@ bool qrcode::readData(const std::string file, Eigen::MatrixXi & D)
 	Eigen::MatrixXd temp = 0.3*R.cast<double>() + 0.59*G.cast<double>() + 0.11*B.cast<double>();
 	for (int i = 0; i < temp.rows(); i++) {
 		for (int j = 0; j < temp.cols(); j++) {
-			D(i, j) = (temp(i, j) > 0) ? 1 : 0;
+			D(i, j) = (temp(i, j) > 0) ? 0:1;
 		}
 	}
 	R.resize(0,0);
 	G.resize(0,0);
 	B.resize(0,0);
 	A.resize(0,0);
-	return true;
+	return D.rows();
 }
 
 int qrcode::readData(const std::string file, Eigen::MatrixXd & D)

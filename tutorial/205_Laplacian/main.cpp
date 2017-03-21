@@ -9,9 +9,11 @@
 #include <igl/readOFF.h>
 #include <igl/repdiag.h>
 #include <igl/viewer/Viewer.h>
-
+#include <Eigen/dense>
+#include <Eigen/Sparse>
 #include <iostream>
 #include "tutorial_shared_path.h"
+#include "igl/jet.h"
 
 Eigen::MatrixXd V,U;
 Eigen::MatrixXi F;
@@ -24,15 +26,22 @@ int main(int argc, char *argv[])
   using namespace std;
 
   // Load a mesh in OFF format
-  igl::readOFF(TUTORIAL_SHARED_PATH "/cow.off", V, F);
+  igl::readOFF(TUTORIAL_SHARED_PATH "/bunny.off", V, F);
 
   // Compute Laplace-Beltrami operator: #V by #V
   igl::cotmatrix(V,F,L);
-
+  Eigen::VectorXd LL;
+  
+  //cout << L << endl;
   // Alternative construction of same Laplacian
   SparseMatrix<double> G,K;
   // Gradient/Divergence
   igl::grad(V,F,G);
+  cout << "G:"<<G.rows() <<endl << "V:"<<V.rows() << endl;
+  LL.resize(V.rows());
+  for (int i = 0; i < V.rows(); i++)
+	  LL(i) = G.coeffRef(i, i);
+  LL.normalize();
   // Diagonal per-triangle "mass matrix"
   VectorXd dblA;
   igl::doublearea(V,F,dblA);
@@ -42,7 +51,6 @@ int main(int argc, char *argv[])
   // discrete Dirichelet energy Hessian
   K = -G.transpose() * T * G;
   cout<<"|K-L|: "<<(K-L).norm()<<endl;
-
   const auto &key_down = [](igl::viewer::Viewer &viewer,unsigned char key,int mod)->bool
   {
     switch(key)
@@ -91,8 +99,8 @@ int main(int argc, char *argv[])
   // Use original normals as pseudo-colors
   MatrixXd N;
   igl::per_vertex_normals(V,F,N);
-  MatrixXd C = N.rowwise().normalized().array()*0.5+0.5;
-
+  MatrixXd C; 
+  igl::jet(LL, true, C);
   // Initialize smoothing with base mesh
   U = V;
   viewer.data.set_mesh(U, F);

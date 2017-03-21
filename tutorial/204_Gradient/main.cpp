@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
   MatrixXi F;
 
   // Load a mesh in OFF format
-  igl::readOFF(TUTORIAL_SHARED_PATH "/cheburashka.off", V, F);
+  igl::readOFF(TUTORIAL_SHARED_PATH "/bunny.off", V, F);
 
   // Read scalar function values from a file, U: #V by 1
   VectorXd U;
