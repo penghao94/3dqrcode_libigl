@@ -26,7 +26,7 @@ namespace qrcode {
 	// @Param Eigen::MatrixXd & addT
 	// @Param Eigen::MatrixXd & _V
 	//************************************
-	bool curve_down(Eigen::MatrixXd &V,Eigen::MatrixXd &D,Eigen::MatrixXf &Src, Eigen::MatrixXf &Dir, Eigen::MatrixXd &T, const int wht_num, Eigen::MatrixXd &addT, Eigen::MatrixXd &_V);
+	bool curve_down(Eigen::MatrixXd &V,Eigen::MatrixXd &D,Eigen::MatrixXf &Src, Eigen::MatrixXf &Dir, Eigen::MatrixXd &T, const int wht_num,const int mul, Eigen::MatrixXd &addT, Eigen::MatrixXd &_V);
 }
 #endif // !CURVEDOWN_H
 

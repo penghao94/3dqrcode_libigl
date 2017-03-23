@@ -84,11 +84,11 @@ bool qrcode::img_to_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, Eige
 	return true;
 }
 
-int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::MatrixXd & D, int scale,int acc, Eigen::MatrixXi & fid, Eigen::MatrixXd & _V, Eigen::MatrixXi & _F, Eigen::MatrixXd & _C, Eigen::MatrixXi & _E, Eigen::MatrixXd & _H, Eigen::MatrixXf &Src,Eigen::MatrixXf &Dir,Eigen::MatrixXd &L)
+int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::MatrixXd & D, int scale,int acc, Eigen::MatrixXi & fid, Eigen::MatrixXd & _V, Eigen::MatrixXi & _F, Eigen::MatrixXd & _C, Eigen::MatrixXi & _E, Eigen::MatrixXd & _H, Eigen::MatrixXf &Src,Eigen::MatrixXf &Dir,Eigen::MatrixXd &L,Eigen::MatrixXi &T)
 {
 	using namespace std;
-	Eigen::MatrixXd r, c,IV, wht_V,blk_V,wht_C,blk_C,adj_C;
-	Eigen::MatrixXi wht_F, blk_F,S,T,adj_F,a_F,IA,IC;
+	Eigen::MatrixXd r, c, wht_V,blk_V,wht_C,blk_C,adj_C,V_pxl;
+	Eigen::MatrixXi wht_F, blk_F,S,adj_F,a_F,IA,IC;
 	Eigen::Vector3f _uv,s,dir;
 	Eigen::Vector3d v0, v1, v2, _v;
 	double CENT_X = viewer.core.viewport(2) / 2;
@@ -104,12 +104,11 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 	int mul = scale*acc;
 	int row = D.rows()*mul;
 	int col = D.cols()*mul;
-	IV.resize(D.rows()*D.cols(), 3);
-	Src.resize(D.rows()*D.cols(), 3);
-	Dir.resize(D.rows()*D.cols(), 3);
-	//fid.resize(D.rows(), D.cols());
+	V_pxl.resize(row*col, 3);
+	Src.resize(row*col, 3);
+	Dir.resize(row*col, 3);
 	fid.resize(row, col);
-	L.resize(D.rows(), D.cols());
+	L.resize(row, col);
 	_E.resize(4 * (D.rows() - 1), 2);
 	_H.resize(1, 3);
 	S.resize(D.rows()*D.cols(),1);
@@ -122,33 +121,27 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 	for (int i = 0; i < row; i++) {
 		for (int j = 0; j < col; j++) {
 
-			double x = (i - row / 2) / acc + CENT_X + scale / 2;
-			double y = (j - col / 2) / acc + CENT_Y + scale / 2;
-			bool shoot = unproject_to_mesh(Eigen::Vector2f(x, y), viewer.core.view*viewer.core.model,
+			double x = (j - col / 2+scale/2) / acc + CENT_X;
+			double y = (row / 2 - i-scale/2) / acc + CENT_Y;
+			bool shoot = unproject_to_mesh(Eigen::Vector2f(x,y), viewer.core.view*viewer.core.model,
 				viewer.core.proj, viewer.core.viewport, V, F, s, dir, fid(i, j), _uv, t);
 
+			v0 = V.row(F(fid(i, j), 0));
+			v1 = V.row(F(fid(i, j), 1));
+			v2 = V.row(F(fid(i, j), 2));
+			_v = _uv(0)*v0 + _uv(1)*v1 + _uv(2)*v2;
+			V_pxl.row(i*row + j) << _v(0), _v(1), _v(2);
+			Src.row(i*row + j) << s.transpose();
+			Dir.row(i*row + j) << dir.transpose();
+			L(i,j) = t;
 			if (i%mul == 0 && j%mul == 0) {
 				int m = i / mul;
 				int n = j / mul;
-				//if (shoot) {
-					v0 = V.row(F(fid(i, j), 0));
-					v1 = V.row(F(fid(i, j), 1));
-					v2 = V.row(F(fid(i, j), 2));
-					_v = _uv(0)*v0 + _uv(1)*v1 + _uv(2)*v2;
-					IV.row(m*D.cols() + n) << _v(0), _v(1), _v(2);
-					Src.row(m*D.cols() + n) << s.transpose();
-					Dir.row(m*D.cols() + n) << dir.transpose();
-					L(m, n) = t;
 					if (m == int(D.rows() / 2) && n == int(D.cols() / 2)) {
 						_H << _v(0), _v(1),_v(2);
 					}
-				//}
-				/*else {
-					IV.row(m*D.cols() + n) << 0, 0, 0;
-					cout << IV.row(m*D.cols() + n) << endl;
-					cout << fid(i, j) << endl;
-					cout << _uv << endl;
-				}*/
+					if (!shoot)
+						cout << "unfit coordinate " << floor(i / mul) << ":" << floor(j / mul) << endl;
 					
 			
 				if (D(m, n) == 0 && m < D.rows() - 1 && n < D.cols() - 1) {
@@ -172,52 +165,6 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 			}
 		}
 	}
-	
-	/*
-	Calculate unproject vertex
-	*/
-	/*for (int i = 0; i < D.rows(); i++) {
-		for (int j = 0; j < D.cols(); j++) {
-
-			double x = (i - D.rows() / 2) *scale + CENT_X+scale/2 ;
-			double y = (j - D.rows() / 2 )*scale + CENT_Y+scale/2;
-			if (unproject_to_mesh(Eigen::Vector2f(x, y), viewer.core.view*viewer.core.model,
-				viewer.core.proj, viewer.core.viewport, V, F,s,dir, fid(i, j), _uv,t)) {
-				v0 = V.row(F(fid(i, j), 0));
-				v1 = V.row(F(fid(i, j), 1));
-				v2 = V.row(F(fid(i, j), 2));
-				_v = _uv(0)*v0 + _uv(1)*v1 + _uv(2)*v2;
-				IV.row(i*D.cols() + j) << _v(0), _v(1), _v(2);
-				Src.row(i*D.cols() + j) << s.transpose();
-				Dir.row(i*D.cols() + j) << dir.transpose();
-				L(i, j) = t;
-				if (i == int(D.rows() / 2) && j == int(D.cols() / 2)) {
-					_H << _v(0), _v(1);
-				}
-			}
-			else
-				IV.row(i*D.cols() + j) << 0, 0, 0;
-
-			if (D(i, j) == 0&&i<D.rows()-1&&j<D.cols()-1) {
-				w_blk++;
-			}
-			else if (D(i, j) == 1 && i<D.rows() - 1 && j<D.cols() - 1) {
-				T.row(i*D.cols() + j) << b_blk;
-				b_blk++;
-				if (i != 0 && i != D.rows() - 2 && j != 0 && j != D.cols() - 2 && D(i - 1, j) == 1 && D(i, j - 1) == 1 && D(i - 1, j - 1) == 1) {
-					sep_pnt++;
-					isSep = false;
-				}
-			}
-
-			if (!isSep)
-				isSep = true;
-			else {
-				S(i*D.cols() + j) = sep_idx;
-				sep_idx++;
-			}
-		}
-	}*/
 	/*
 	Generate verticals and mesh
 	*/
@@ -230,8 +177,8 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 	a_F.resize(8 * b_blk, 3);
 	for (int i = 0; i < D.rows(); i++) {
 		for (int j = 0; j < D.cols(); j++) {
-			if(S(i*D.cols()+j)!=-1)
-				wht_V.row(S(i*D.cols() + j)) << IV.row(i*D.cols() + j);
+			if (S(i*D.cols() + j) != -1)
+				wht_V.row(S(i*D.cols() + j)) << V_pxl.row((i*mul)*col +j*mul);
 			if (i < D.rows() - 1 && j < D.cols() - 1) {
 				if (D(i, j) == 0) {
 					int a = S(i*D.cols() + j,0);
@@ -259,10 +206,10 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 					int b = 4*b_idx + 1;
 					int c = 4*b_idx + 2;
 					int d = 4*b_idx + 3;
-					blk_V.row(a) << IV.row(i*D.cols() + j);
-					blk_V.row(b) << IV.row((i + 1)*D.cols() + j);
-					blk_V.row(c) << IV.row(i*D.cols() + j + 1);
-					blk_V.row(d) << IV.row((i + 1)*D.cols() + j + 1);
+					blk_V.row(a) << V_pxl.row(i*mul*col + j*mul);
+					blk_V.row(b) << V_pxl.row((i + 1)*mul*col + j*mul);
+					blk_V.row(c) << V_pxl.row(i*mul*col + (j + 1)*mul);
+					blk_V.row(d) << V_pxl.row((i + 1)*mul*col + (j + 1)*mul);
 					blk_F.row(2 * b_idx) << a, b, c;
 					blk_F.row(2 * b_idx + 1) << b, d, c;
 					blk_C.row(2 * b_idx) << 0.0, 0.0, 0.0;

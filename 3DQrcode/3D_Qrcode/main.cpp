@@ -21,7 +21,8 @@ Self-definition function
 #include "curve_down.h"
 #include "printPNG.h"
 #include "display.h"
-
+#include "test.h"
+#include "bwlabel.h"
 /*
 Calling function
 */
@@ -39,7 +40,7 @@ int main(int argc, char *argv[])
 	igl::viewer::Viewer viewer;
 	igl::Timer timer;
 	viewer.core.show_lines = false;
-
+	
 	/*
 	Set global parameters
 	*/
@@ -49,9 +50,9 @@ int main(int argc, char *argv[])
 	Eigen::MatrixXd C;
 	int scale = 0;
 	Eigen::MatrixXd D;
-	Eigen::MatrixXi _D;
+	Eigen::MatrixXi D_img;
 	//Parameters of qrcode image to mesh
-	int acc = 2       ;					//accuracy of projection
+	int acc = 1;					//accuracy of projection
 	Eigen::MatrixXi F_hit;			//face id hit by ray
 	Eigen::MatrixXd V_uncrv;		// vertex matrix uncarved
 	Eigen::MatrixXi F_qr;
@@ -60,10 +61,12 @@ int main(int argc, char *argv[])
 	Eigen::MatrixXd H_qr;
 	Eigen::MatrixXf Src, Dir;		//source direction of uncarved vertex
 	Eigen::MatrixXd th;				//than of uncarved vertex
+	Eigen::MatrixXi B_seq;			
 	int wht_num;					//number of white block
 	//Parameters of carve mesh down
+	int mul;
 	Eigen::MatrixXd th_crv;         //carved than
-	Eigen::MatrixXd V_qr;
+	Eigen::MatrixXd V_qr; 
 	//Parameters of cut mesh
 	Eigen::MatrixXd V_rest;
 	Eigen::MatrixXi F_rest;
@@ -75,7 +78,14 @@ int main(int argc, char *argv[])
 	Eigen::MatrixXd V_fin;
 	Eigen::MatrixXi F_fin;
 	Eigen::MatrixXd C_fin;
-
+	//parameters of test
+	//Eigen::MatrixXd d, t;
+	//qrcode::test(D, t);
+	//th_crv = t*0.00041;
+	//scale = 2;
+	//Parameters of calculate area
+	Eigen::MatrixXd BW;
+	vector<vector<int>> B_cnn;
 	// UI Design
 	viewer.callback_init = [&](igl::viewer::Viewer& viewer)
 	{
@@ -95,12 +105,14 @@ int main(int argc, char *argv[])
 		});
 
 		// Add a button
-		viewer.ngui->addButton("Load Qrcode", [&]() {
-			qrcode::readData(_D);
+		viewer.ngui->addButton("Load image", [&]() {
+			qrcode::readData(D_img);
 			scale = 1;
-			D = _D.cast<double>();
+			D = D_img.transpose().cast<double>();
 		});
-
+		viewer.ngui->addButton("Load qrcode", [&]() {
+			scale=qrcode::readData(D);
+		});
 		// Add a button
 		viewer.ngui->addButton("Save Mesh", [&]() {
 			qrcode::saveMesh(viewer, viewer.data);
@@ -119,8 +131,10 @@ int main(int argc, char *argv[])
 			mode = viewer.core.model;
 			mode.inverse();
 			if (V.rows() != 0 && D.rows() != 0) {
-				wht_num = qrcode::img_to_sep_mesh(viewer, V, F, D, scale, acc, F_hit, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th);
+				wht_num = qrcode::img_to_sep_mesh(viewer, V, F, D, scale, acc, F_hit, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th,B_seq);
 			}
+			th_crv.resize(th.rows(), th.cols());
+			th_crv.setConstant(0.001);
 			cout << "Image to mesh time = " << timer.getElapsedTime() << endl;
 		});
 		viewer.ngui->addButton("Display", [&]() {
@@ -131,15 +145,16 @@ int main(int argc, char *argv[])
 			V_fin.resize(0, 0);
 			F_fin.resize(0, 0);
 			C_fin.resize(0, 0);
+			viewer.data.set_face_based(true);
 		});
 		viewer.ngui->addButton("Carved Model", [&]() {
 			timer.start();
-			th_crv.resize(th.rows(), th.cols());
-			th_crv.setConstant(0.001);
 			viewer.data.clear();
-			qrcode::curve_down(V_uncrv, D, Src, Dir, th, wht_num, th_crv, V_qr);
+			mul = scale*acc;
+			qrcode::curve_down(V_uncrv, D, Src, Dir, th, wht_num,mul,th_crv, V_qr);
 			qrcode::cutMesh(V, F, F_hit, V_rest, F_rest, E_rest);
-			viewer.data.set_mesh(V_rest, F_rest);
+			viewer.data.set_mesh(V_qr, F_qr);
+			viewer.data.set_face_based(true);
 			cout << "Carve model time = " << timer.getElapsedTime() << endl;
 			
 		});
@@ -156,9 +171,20 @@ int main(int argc, char *argv[])
 			F_fin.block(0, 0, F_rest.rows(), 3) << F_rest;
 			F_fin.block(F_rest.rows(), 0, F_qr.rows(), 3) << (F_qr.array() + V_rest.rows()).matrix();
 			F_fin.block(F_rest.rows() + F_qr.rows(), 0, F_tri.rows(), 3) << F_tri;
+			viewer.data.set_face_based(true);
 			viewer.data.set_mesh(V_fin, F_fin);
 			cout << "Merge time = " << timer.getElapsedTime() << endl;
+		});
 
+		viewer.ngui->addButton("Calculate area", [&]() {
+			qrcode::bwlabel(D, 4, BW);
+			//qrcode::bwindex(BW, B_cnn);
+			/*for (int i = 0; i < B_cnn.size(); i++) {
+				for (int j = 0; j < B_cnn[i].size(); j++) {
+					cout << B_cnn[i][j] << " ";
+				}
+				cout << endl;
+			}*/
 		});
 		// Generate menu
 		viewer.screen->performLayout();
