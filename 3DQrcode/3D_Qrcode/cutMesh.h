@@ -10,7 +10,10 @@
 #pragma once
 #ifndef CUTMESH_H_
 #define CUTMESH_H_
+#include <iostream>
 #include <Eigen/core>
+#include "halfedge.h"
+#include <igl/unique.h>
 namespace qrcode {
 	//************************************
 	// Method:    qrcode::cutMesh

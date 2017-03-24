@@ -15,7 +15,7 @@
 #include <igl/matlab/matlabinterface.h>
 namespace qrcode {
 	// Matlab instance
-	bool bwlabel(Eigen::MatrixXd &BW, int connectivity,Eigen::MatrixXd &L);
+	bool bwlabel(Engine *engine,Eigen::MatrixXd &BW, int connectivity,Eigen::MatrixXd &L);
 	bool bwindex(Eigen::MatrixXd &L, std::vector<Eigen::Matrix3d> &V_index);
 }
 #endif // !BWLABEL_H

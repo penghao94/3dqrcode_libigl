@@ -10,10 +10,9 @@
 #include "bwlabel.h"
 #include "igl/unique.h"
 #include "halfedge.h"
-bool qrcode::bwlabel(Eigen::MatrixXd & BW, int connectivity, Eigen::MatrixXd & L)
+bool qrcode::bwlabel(Engine *engine, Eigen::MatrixXd & BW, int connectivity, Eigen::MatrixXd & L)
 {
-	Engine* engine;
-	igl::matlab::mlinit(&engine);
+
 	igl::matlab::mlsetmatrix(&engine, "BW", BW);
 	if (connectivity == 8)
 		igl::matlab::mleval(&engine, "L=bwlabel(BW,8);");

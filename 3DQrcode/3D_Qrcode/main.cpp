@@ -33,12 +33,16 @@ Calling function
 #include <igl/unique.h>
 #include <igl/Timer.h>
 #include <igl/readOFF.h>
+#include <igl/matlab/matlabinterface.h>
+#include <igl/unique.h>
 
 int main(int argc, char *argv[])
 {
 	// Initiate viewer, timer and setting 
 	igl::viewer::Viewer viewer;
 	igl::Timer timer;
+	Engine *engine;
+	igl::matlab::mlinit(&engine);
 	viewer.core.show_lines = false;
 	
 	/*
@@ -98,6 +102,7 @@ int main(int argc, char *argv[])
 
 		// Add a button
 		viewer.ngui->addButton("Load Mesh", [&]() {
+			viewer.data.clear();
 			qrcode::loadMesh(viewer, V, F);
 			C.resize(F.rows(), 3);
 			C << Eigen::RowVector3d(1.0, 1.0, 1.0).replicate(F.rows(), 1);
@@ -146,6 +151,7 @@ int main(int argc, char *argv[])
 			F_fin.resize(0, 0);
 			C_fin.resize(0, 0);
 			viewer.data.set_face_based(true);
+			
 		});
 		viewer.ngui->addButton("Carved Model", [&]() {
 			timer.start();
@@ -153,7 +159,7 @@ int main(int argc, char *argv[])
 			mul = scale*acc;
 			qrcode::curve_down(V_uncrv, D, Src, Dir, th, wht_num,mul,th_crv, V_qr);
 			qrcode::cutMesh(V, F, F_hit, V_rest, F_rest, E_rest);
-			viewer.data.set_mesh(V_qr, F_qr);
+			viewer.data.set_mesh(V_rest, F_rest);
 			viewer.data.set_face_based(true);
 			cout << "Carve model time = " << timer.getElapsedTime() << endl;
 			
@@ -177,7 +183,7 @@ int main(int argc, char *argv[])
 		});
 
 		viewer.ngui->addButton("Calculate area", [&]() {
-			qrcode::bwlabel(D, 4, BW);
+			qrcode::bwlabel(engine,D, 4, BW);
 			//qrcode::bwindex(BW, B_cnn);
 			/*for (int i = 0; i < B_cnn.size(); i++) {
 				for (int j = 0; j < B_cnn[i].size(); j++) {

@@ -46,14 +46,26 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int modifier)
 
 int main(int argc, char *argv[])
 {
+
   // Load a mesh in OFF format
   igl::readOFF(TUTORIAL_SHARED_PATH "/3holes.off", V, F);
 
   // Launch MATLAB
   igl::matlab::mlinit(&engine);
-
+  Eigen::MatrixXd D(6, 6),bw(6, 6);
+  D << 0, 1, 1, 0, 1, 1,
+	  1, 1, 0, 0, 1, 1,
+	  1, 1, 1, 0, 0, 0,
+	  1, 0, 1, 0, 1, 0,
+	  0, 0, 1, 1, 0, 0,
+	  0, 1, 1, 1, 0, 0;
+  igl::matlab::mlsetmatrix(&engine, "D", D);
+  igl::matlab::mleval(&engine,"bw = bwlabel(D,4)");
+ // igl::matlab::mleval(&engine, "X=bwlevel(bw)");
+  igl::matlab::mlgetmatrix(&engine, "bw", bw);
+  std::cout << bw << std::endl;
   // Compute the discrete Laplacian operator
-  Eigen::SparseMatrix<double> L;
+/*  Eigen::SparseMatrix<double> L;
   igl::cotmatrix(V,F,L);
 
   // Send Laplacian matrix to matlab
@@ -75,10 +87,10 @@ int main(int argc, char *argv[])
   igl::viewer::Viewer viewer;
   viewer.callback_key_down = &key_down;
   viewer.data.set_mesh(V, F);
-
+ 
   // Plot the first non-trivial eigenvector
   plotEV(viewer,1);
 
   // Launch the viewer
-  viewer.launch();
+  viewer.launch();*/
 }

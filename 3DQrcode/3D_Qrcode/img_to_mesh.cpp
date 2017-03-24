@@ -107,7 +107,7 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 	V_pxl.resize(row*col, 3);
 	Src.resize(row*col, 3);
 	Dir.resize(row*col, 3);
-	fid.resize(row, col);
+	fid.resize(row+2*mul, col+2*mul);
 	L.resize(row, col);
 	_E.resize(4 * (D.rows() - 1), 2);
 	_H.resize(1, 3);
@@ -118,49 +118,50 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 	/*
 	Calculate unproject vertex
 	*/
-	for (int i = 0; i < row; i++) {
-		for (int j = 0; j < col; j++) {
+	for (int i = -mul; i < row+mul; i++) {
+		for (int j = -mul; j < col+mul; j++) {
 
 			double x = (j - col / 2+scale/2) / acc + CENT_X;
 			double y = (row / 2 - i-scale/2) / acc + CENT_Y;
 			bool shoot = unproject_to_mesh(Eigen::Vector2f(x,y), viewer.core.view*viewer.core.model,
-				viewer.core.proj, viewer.core.viewport, V, F, s, dir, fid(i, j), _uv, t);
-
-			v0 = V.row(F(fid(i, j), 0));
-			v1 = V.row(F(fid(i, j), 1));
-			v2 = V.row(F(fid(i, j), 2));
-			_v = _uv(0)*v0 + _uv(1)*v1 + _uv(2)*v2;
-			V_pxl.row(i*row + j) << _v(0), _v(1), _v(2);
-			Src.row(i*row + j) << s.transpose();
-			Dir.row(i*row + j) << dir.transpose();
-			L(i,j) = t;
-			if (i%mul == 0 && j%mul == 0) {
-				int m = i / mul;
-				int n = j / mul;
+				viewer.core.proj, viewer.core.viewport, V, F, s, dir, fid(i+mul, j+mul), _uv, t);
+			if (i>=0&&j>=0&&i < row&&j < col) {
+				v0 = V.row(F(fid(i + mul, j + mul), 0));
+				v1 = V.row(F(fid(i + mul, j + mul), 1));
+				v2 = V.row(F(fid(i + mul, j + mul), 2));
+				_v = _uv(0)*v0 + _uv(1)*v1 + _uv(2)*v2;
+				V_pxl.row(i*row + j) << _v(0), _v(1), _v(2);
+				Src.row(i*row + j) << s.transpose();
+				Dir.row(i*row + j) << dir.transpose();
+				L(i, j) = t;
+				if (i%mul == 0 && j%mul == 0) {
+					int m = i / mul;
+					int n = j / mul;
 					if (m == int(D.rows() / 2) && n == int(D.cols() / 2)) {
-						_H << _v(0), _v(1),_v(2);
+						_H << _v(0), _v(1), _v(2);
 					}
 					if (!shoot)
 						cout << "unfit coordinate " << floor(i / mul) << ":" << floor(j / mul) << endl;
-					
-			
-				if (D(m, n) == 0 && m < D.rows() - 1 && n < D.cols() - 1) {
-					w_blk++;
-				}
-				else if (D(m, n) == 1 && m < D.rows() - 1 && n < D.cols() - 1) {
-					T.row(m*D.cols() + n) << b_blk;
-					b_blk++;
-					if (m != 0 && m != D.rows() - 2 && n != 0 && n != D.cols() - 2 && D(m - 1, n) == 1 && D(m, n - 1) == 1 && D(m - 1, n - 1) == 1) {
-						sep_pnt++;
-						isSep = false;
-					}
-				}
 
-				if (!isSep)
-					isSep = true;
-				else {
-					S(m*D.cols() + n) = sep_idx;
-					sep_idx++;
+
+					if (D(m, n) == 0 && m < D.rows() - 1 && n < D.cols() - 1) {
+						w_blk++;
+					}
+					else if (D(m, n) == 1 && m < D.rows() - 1 && n < D.cols() - 1) {
+						T.row(m*D.cols() + n) << b_blk;
+						b_blk++;
+						if (m != 0 && m != D.rows() - 2 && n != 0 && n != D.cols() - 2 && D(m - 1, n) == 1 && D(m, n - 1) == 1 && D(m - 1, n - 1) == 1) {
+							sep_pnt++;
+							isSep = false;
+						}
+					}
+
+					if (!isSep)
+						isSep = true;
+					else {
+						S(m*D.cols() + n) = sep_idx;
+						sep_idx++;
+					}
 				}
 			}
 		}
@@ -297,6 +298,7 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 	*/
 	igl::unique_rows(a_F, adj_F, IA, IC);
 	adj_C.setOnes(adj_F.rows(), 3);
+	
 	_V.resize(wht_V.rows() + blk_V.rows(), 3);
 	_F.resize(wht_F.rows() + blk_F.rows()+adj_F.rows(), 3);
 	_C.resize(wht_C.rows() + blk_C.rows()+adj_C.rows(), 3);

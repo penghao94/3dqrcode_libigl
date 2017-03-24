@@ -12,7 +12,6 @@ bool qrcode::qrCodeGenerator(std::string text, const qrcodegen::QrCode::Ecc & er
 			Q(i+border, j+border) = (qr.getModule(j, i) == 1 ? 1.0 : 0.0);
 		}
 	}
-	std::cout << Q << std::endl;
 	return true;
 }
 
