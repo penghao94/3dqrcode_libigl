@@ -104,7 +104,7 @@ namespace qrcode {
 		Eigen::MatrixXf &Src,
 		Eigen::MatrixXf &Dir,
 		Eigen::MatrixXd &L,
-		Eigen::MatrixXi &T
+		Eigen::MatrixXd &V_pxl
 	);
 	//************************************
 	// Method:    img_to_facet

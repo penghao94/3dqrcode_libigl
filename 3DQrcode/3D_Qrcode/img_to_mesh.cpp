@@ -84,11 +84,11 @@ bool qrcode::img_to_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, Eige
 	return true;
 }
 
-int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::MatrixXd & D, int scale,int acc, Eigen::MatrixXi & fid, Eigen::MatrixXd & _V, Eigen::MatrixXi & _F, Eigen::MatrixXd & _C, Eigen::MatrixXi & _E, Eigen::MatrixXd & _H, Eigen::MatrixXf &Src,Eigen::MatrixXf &Dir,Eigen::MatrixXd &L,Eigen::MatrixXi &T)
+int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::MatrixXd & D, int scale,int acc, Eigen::MatrixXi & fid, Eigen::MatrixXd & _V, Eigen::MatrixXi & _F, Eigen::MatrixXd & _C, Eigen::MatrixXi & _E, Eigen::MatrixXd & _H, Eigen::MatrixXf &Src,Eigen::MatrixXf &Dir,Eigen::MatrixXd &L,Eigen::MatrixXd &V_pxl)
 {
 	using namespace std;
-	Eigen::MatrixXd r, c, wht_V,blk_V,wht_C,blk_C,adj_C,V_pxl;
-	Eigen::MatrixXi wht_F, blk_F,S,adj_F,a_F,IA,IC;
+	Eigen::MatrixXd r, c, wht_V,blk_V,wht_C,blk_C,adj_C;
+	Eigen::MatrixXi wht_F, blk_F,S,adj_F,a_F,IA,IC,T;
 	Eigen::Vector3f _uv,s,dir;
 	Eigen::Vector3d v0, v1, v2, _v;
 	double CENT_X = viewer.core.viewport(2) / 2;
