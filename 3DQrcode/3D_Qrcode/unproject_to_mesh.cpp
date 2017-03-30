@@ -24,6 +24,7 @@ bool qrcode::unproject_to_mesh(const Eigen::Vector2f & pos, const Eigen::Matrix4
 		return false;
 		}
 		hit = hits[0];
+
 		return true;
 	};
 return unproject_onto_mesh(pos, model, proj, viewport, shoot_ray, s, dir, fid, bc, t);

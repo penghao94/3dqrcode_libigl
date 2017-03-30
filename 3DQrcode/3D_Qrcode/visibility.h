@@ -1,0 +1,22 @@
+/*!
+ * This is a project to generate QRcode using libigl. See more at https://github.com/libigl/libigl
+ *
+ * Copyright (C) 2017 Swanny Peng <ph1994wh@gmail.com>
+ *
+ * visibility.h  2017/03/26 10:02
+ * TODO:
+ *
+*/
+
+#pragma once
+#ifndef VISIBILITY_H
+#define VISILIBITY_H
+#include <iostream>
+#include <Eigen/core>
+#include <igl/matlab/matlabinterface.h>
+namespace qrcode {
+	bool visibility(Engine *engine, Eigen::MatrixXf &Src, Eigen::MatrixXf &Dir, Eigen::MatrixXd &th, Eigen::MatrixXd &th_crv, Eigen::MatrixXd &BW, std::vector<Eigen::MatrixXd> &B_cnn,
+		Eigen::MatrixXd &V_fin, Eigen::MatrixXi &F_fin, Eigen::VectorXi &ufct, int v_num, int f_num,Eigen::MatrixXd &vis);
+}
+#endif // !VISIBILITY_H
+

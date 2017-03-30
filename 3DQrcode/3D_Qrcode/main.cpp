@@ -23,6 +23,7 @@ Self-definition function
 #include "display.h"
 #include "test.h"
 #include "bwlabel.h"
+#include "visibility.h"
 /*
 Calling function
 */
@@ -65,7 +66,7 @@ int main(int argc, char *argv[])
 	Eigen::MatrixXd H_qr;
 	Eigen::MatrixXf Src, Dir;		//source direction of uncarved vertex
 	Eigen::MatrixXd th;				//than of uncarved vertex
-	Eigen::MatrixXi B_seq;			
+	Eigen::MatrixXd V_pxl;			
 	int wht_num;					//number of white block
 	//Parameters of carve mesh down
 	int mul;
@@ -82,14 +83,27 @@ int main(int argc, char *argv[])
 	Eigen::MatrixXd V_fin;
 	Eigen::MatrixXi F_fin;
 	Eigen::MatrixXd C_fin;
-	//parameters of test
-	//Eigen::MatrixXd d, t;
-	//qrcode::test(D, t);
-	//th_crv = t*0.00041;
-	//scale = 2;
 	//Parameters of calculate area
+	//Output of bwlabel
 	Eigen::MatrixXd BW;
-	vector<vector<int>> B_cnn;
+	//Output of bwlindex
+	vector<Eigen::MatrixXd> B_cnn;
+	//Output of upperpoint
+	Eigen::VectorXi upnt;
+	Eigen::VectorXi ufct;
+	int v_num;
+	int f_num;
+	//Output of visibility
+	Eigen::MatrixXd Vis;
+	
+	D.resize(6, 6);
+	D << 0, 0, 0, 0, 0, 0,
+		0, 1, 0, 0, 0, 0,
+		0, 1, 1, 0, 0, 0,
+		0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0;
+	scale = 11;
 	// UI Design
 	viewer.callback_init = [&](igl::viewer::Viewer& viewer)
 	{
@@ -104,6 +118,7 @@ int main(int argc, char *argv[])
 		viewer.ngui->addButton("Load Mesh", [&]() {
 			viewer.data.clear();
 			qrcode::loadMesh(viewer, V, F);
+			
 			C.resize(F.rows(), 3);
 			C << Eigen::RowVector3d(1.0, 1.0, 1.0).replicate(F.rows(), 1);
 			viewer.data.set_colors(C);
@@ -129,17 +144,17 @@ int main(int argc, char *argv[])
 
 		});
 
-		viewer.ngui->addGroup("Qrcode Operator");
+		viewer.ngui->addGroup("Qr code Operator");
 
 		viewer.ngui->addButton("Image to mesh", [&]() {
 			timer.start();
 			mode = viewer.core.model;
 			mode.inverse();
 			if (V.rows() != 0 && D.rows() != 0) {
-				wht_num = qrcode::img_to_sep_mesh(viewer, V, F, D, scale, acc, F_hit, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th,B_seq);
+				wht_num = qrcode::img_to_sep_mesh(viewer, V, F, D, scale, acc, F_hit, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th,V_pxl);
 			}
 			th_crv.resize(th.rows(), th.cols());
-			th_crv.setConstant(0.001);
+			th_crv.setConstant(0.0001);
 			cout << "Image to mesh time = " << timer.getElapsedTime() << endl;
 		});
 		viewer.ngui->addButton("Display", [&]() {
@@ -179,18 +194,25 @@ int main(int argc, char *argv[])
 			F_fin.block(F_rest.rows() + F_qr.rows(), 0, F_tri.rows(), 3) << F_tri;
 			viewer.data.set_face_based(true);
 			viewer.data.set_mesh(V_fin, F_fin);
+			cout << "Model vertex: " << V_fin.rows() << endl << "Model facet: " << F_fin.rows() << endl;
 			cout << "Merge time = " << timer.getElapsedTime() << endl;
 		});
 
 		viewer.ngui->addButton("Calculate area", [&]() {
+			timer.start();
 			qrcode::bwlabel(engine,D, 4, BW);
-			//qrcode::bwindex(BW, B_cnn);
-			/*for (int i = 0; i < B_cnn.size(); i++) {
-				for (int j = 0; j < B_cnn[i].size(); j++) {
-					cout << B_cnn[i][j] << " ";
-				}
-				cout << endl;
-			}*/
+			qrcode::bwindex(V_pxl, BW, scale, B_cnn);
+			qrcode::upperpoint(V_fin, F_fin, mode, V_rest.rows(), wht_num, F_rest.rows(), 2 * (wht_num - D.rows() - D.cols() + 1), upnt, ufct,v_num,f_num);
+			qrcode::visibility(engine, Src, Dir, th, th_crv, BW, B_cnn, V_fin, F_fin, ufct, v_num, f_num, Vis);
+			cout << "Area time = " << timer.getElapsedTime() << endl;
+		});
+		viewer.ngui->addButton("test", [&]() {
+			cout << "carema_zoom:"<<viewer.core.camera_zoom << endl;
+			cout << "model_zoom:" << viewer.core.model_zoom << endl;
+			cout << "X:" << V.col(0).array().abs().maxCoeff()*viewer.core.camera_zoom*viewer.core.model_zoom << endl;
+			cout << "Y:" << V.col(1).array().abs().maxCoeff() *viewer.core.camera_zoom*viewer.core.model_zoom << endl;
+			cout << "Z:" << V.col(2).array().abs().maxCoeff() *viewer.core.camera_zoom*viewer.core.model_zoom<< endl;
+			cout << viewer.core.model << endl;
 		});
 		// Generate menu
 		viewer.screen->performLayout();

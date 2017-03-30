@@ -38,10 +38,10 @@ int qrcode::readData(const std::string file, Eigen::MatrixXi & D)
 	D.resize(cols, rows);
 	for (unsigned i = 0; i < rows; ++i) {
 		for (unsigned j = 0; j < cols; ++j) {
-			R(i,j) = data[4 * (j + cols * i) + 0];
-			G(i, j) = data[4 * (j + cols * i) + 1];
-			B(i, j) = data[4 * (j + cols * i) + 2];
-			A(i, j) = data[4 * (j + cols * i) + 3];
+			R(i,j) = data[4 * (i + cols * j) + 0];
+			G(i, j) = data[4 * (i + cols * j) + 1];
+			B(i, j) = data[4 * (i + cols * j) + 2];
+			A(i, j) = data[4 * (i + cols * j) + 3];
 		}
 	}
 
