@@ -24,6 +24,7 @@ Self-definition function
 #include "test.h"
 #include "bwlabel.h"
 #include "visibility.h"
+#include "gaussianKernel.h"
 /*
 Calling function
 */
@@ -36,7 +37,6 @@ Calling function
 #include <igl/readOFF.h>
 #include <igl/matlab/matlabinterface.h>
 #include <igl/unique.h>
-
 int main(int argc, char *argv[])
 {
 	// Initiate viewer, timer and setting 
@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
 	Eigen::MatrixXd BW;
 	//Output of bwlindex
 	vector<Eigen::MatrixXd> B_cnn;
+	std::vector<std::vector<Eigen::MatrixXi> > B_cii;
 	//Output of upperpoint
 	Eigen::VectorXi upnt;
 	Eigen::VectorXi ufct;
@@ -96,14 +97,15 @@ int main(int argc, char *argv[])
 	//Output of visibility
 	Eigen::MatrixXd Vis;
 	
-	D.resize(6, 6);
-	D << 0, 0, 0, 0, 0, 0,
-		0, 1, 0, 0, 0, 0,
-		0, 1, 1, 0, 0, 0,
-		0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0;
-	scale = 11;
+	D.resize(7, 7);
+	D << 0, 0, 0, 0, 0, 0, 0,
+		0, 1, 1, 1, 1, 0, 0,
+		0, 1, 1, 0, 1, 0, 0,
+		0, 1, 0, 1, 1, 0, 0,
+		0, 0, 1, 1, 1, 0, 0,
+		0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0;
+	scale = 1;
 	// UI Design
 	viewer.callback_init = [&](igl::viewer::Viewer& viewer)
 	{
@@ -154,7 +156,7 @@ int main(int argc, char *argv[])
 				wht_num = qrcode::img_to_sep_mesh(viewer, V, F, D, scale, acc, F_hit, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th,V_pxl);
 			}
 			th_crv.resize(th.rows(), th.cols());
-			th_crv.setConstant(0.0001);
+			th_crv.setConstant(0.003);
 			cout << "Image to mesh time = " << timer.getElapsedTime() << endl;
 		});
 		viewer.ngui->addButton("Display", [&]() {
@@ -201,19 +203,13 @@ int main(int argc, char *argv[])
 		viewer.ngui->addButton("Calculate area", [&]() {
 			timer.start();
 			qrcode::bwlabel(engine,D, 4, BW);
-			qrcode::bwindex(V_pxl, BW, scale, B_cnn);
-			qrcode::upperpoint(V_fin, F_fin, mode, V_rest.rows(), wht_num, F_rest.rows(), 2 * (wht_num - D.rows() - D.cols() + 1), upnt, ufct,v_num,f_num);
-			qrcode::visibility(engine, Src, Dir, th, th_crv, BW, B_cnn, V_fin, F_fin, ufct, v_num, f_num, Vis);
+			qrcode::bwindex(engine,BW,scale,B_cii);
+			//qrcode::upperpoint(V_fin, F_fin, mode, V_rest.rows(), wht_num, F_rest.rows(), 2 * (wht_num - D.rows() - D.cols() + 1), upnt, ufct,v_num,f_num);
+			//qrcode::visibility(engine, Src, Dir, th, th_crv, BW, B_cnn, V_fin, F_fin, ufct, v_num, f_num, Vis);
+			//cout << Vis << endl;
 			cout << "Area time = " << timer.getElapsedTime() << endl;
 		});
-		viewer.ngui->addButton("test", [&]() {
-			cout << "carema_zoom:"<<viewer.core.camera_zoom << endl;
-			cout << "model_zoom:" << viewer.core.model_zoom << endl;
-			cout << "X:" << V.col(0).array().abs().maxCoeff()*viewer.core.camera_zoom*viewer.core.model_zoom << endl;
-			cout << "Y:" << V.col(1).array().abs().maxCoeff() *viewer.core.camera_zoom*viewer.core.model_zoom << endl;
-			cout << "Z:" << V.col(2).array().abs().maxCoeff() *viewer.core.camera_zoom*viewer.core.model_zoom<< endl;
-			cout << viewer.core.model << endl;
-		});
+		
 		// Generate menu
 		viewer.screen->performLayout();
 

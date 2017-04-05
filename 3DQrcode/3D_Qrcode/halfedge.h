@@ -26,7 +26,7 @@ namespace qrcode {
 		
 		eList();
 		~eList();
-		void add( int x, int y,int id);
+		void add(int x, int y, int id);
 		void matrix(Eigen::MatrixXi &E);
 
 	};

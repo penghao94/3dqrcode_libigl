@@ -10,6 +10,7 @@
 #include "bwlabel.h"
 #include "igl/unique.h"
 #include "halfedge.h"
+#include "outBound.h"
 bool qrcode::bwlabel(Engine *engine, Eigen::MatrixXd & BW, int connectivity, Eigen::MatrixXd & L)
 {
 
@@ -24,12 +25,13 @@ bool qrcode::bwlabel(Engine *engine, Eigen::MatrixXd & BW, int connectivity, Eig
 	return true;
 }
 
-bool qrcode::bwindex(Eigen::MatrixXd &V_pxl,Eigen::MatrixXd & L,int scale, std::vector<Eigen::MatrixXd>& V_index)
+bool qrcode::bwindex(Engine *engine,Eigen::MatrixXd &V_pxl,Eigen::MatrixXd & L,int scale, std::vector<Eigen::MatrixXd>& V_index)
 {
 	using namespace std;
 	Eigen::MatrixXd C;
 	Eigen::MatrixXi E;
 	Eigen::MatrixXd V;
+	Eigen::MatrixXi _E,temp;
 	std::vector<std::vector<int>> I;	
 	igl::unique(L, C);
 	int index = C.rows() - 1;
@@ -44,6 +46,9 @@ bool qrcode::bwindex(Eigen::MatrixXd &V_pxl,Eigen::MatrixXd & L,int scale, std::
 				I[round(L(i, j))-1].push_back(i*L.cols() + j);
 		}
 	}
+	/*for (int i = 0; i < I[24].size(); i++) {
+		cout << int(I[24][i] / L.cols()) << "     " << int(I[24][i] % L.cols()) << endl;
+	}*/
 	for (int i = 0; i < index; i++) {
 		qrcode::eList *elist = new qrcode::eList();
 		
@@ -59,21 +64,125 @@ bool qrcode::bwindex(Eigen::MatrixXd &V_pxl,Eigen::MatrixXd & L,int scale, std::
 			elist->add(c, a, 0);
 		}
 		elist->matrix(E);
+		_E.resize(E.rows(), 2);
+		temp.resize(2*E.rows(), 2);
 		delete elist;
+		for (int k = 0; k < E.rows(); k++) {
+			if (k == 0) {
+				_E.row(k) << E(k, 0), E(k, 1);
+			}
+			else {
+				for (int l = 0; l < E.rows(); l++) {
+					if (E(l, 0) == _E(k-1,1)) {
+						_E.row(k) << E(l, 0), E(l, 1);
+						break;
+					}
+				}
+			}
+		}
+		if (i == 24) {
+			for (int k = 0; k < _E.rows(); k++) {
+				temp.row(2*k) << int(_E(k, 0) / L.cols()*scale), int(_E(k, 0) % L.cols()*scale);
+				temp.row(2*k+1) << int(_E(k, 1) / L.cols()*scale), int(_E(k, 1) % L.cols()*scale);
+				//cout << int(_E(k, 1) / L.cols()*scale) << "		" << int(_E(k, 1) % L.cols()*scale) << endl;
+			}
+			igl::matlab::mlsetmatrix(&engine, "temp", temp);
+			igl::matlab::mleval(&engine, "plot(temp(:,2),temp(:,1));");
+		}
+		
+
 		V.resize(E.rows()*scale, 3);
 		for (int k = 0; k < E.rows(); k++) {
-			int x1 = E(k, 0) % L.cols();
-			int y1 = E(k, 0) / L.cols();
-			int x2 = E(k, 1) % L.cols();
-			int y2 = E(k, 1) / L.cols();
+			
+			int x1 = _E(k, 0) % L.cols();
+			int y1 = _E(k, 0) / L.cols();
+			int x2 = _E(k, 1) % L.cols();
+			int y2 = _E(k, 1) / L.cols();
 			for (int m = 0; m < scale; m++) {
 				V.row(scale * k + m) << V_pxl.row((y1*scale+(y2-y1)*m)*col+x1*scale+(x2-x1)*m);
+				
 			}
 		}
 		V_index[i] = V;
 	}
 	V.resize(0, 0);
 	E.resize(0, 0);
+	return true;
+}
+
+bool qrcode::bwindex(Engine * engine, Eigen::MatrixXd & L, int scale, std::vector<std::vector<Eigen::MatrixXi>>& V_index)
+{
+	using namespace std;
+	Eigen::MatrixXd C;
+	Eigen::MatrixXi E, _E;
+	Eigen::MatrixXi outer,hole;
+	//Eigen::MatrixXi temp;
+	std::vector<std::vector<int>> I;
+
+	/*for (int i = 0; i < L.rows(); i++) {
+		for (int j = 0; j < L.cols(); j++) {
+			if (L(i, j) != 31) {
+				L(i, j) = 0;
+			}else
+				L(i, j) = 1;
+		}
+	}*/
+	igl::unique(L, C);
+	int index = C.rows() - 1;
+	int col = L.cols()*scale;
+	C.resize(0, 0);
+	I.resize(index);
+	V_index.resize(index);
+
+	for (int i = 0; i < L.rows(); i++) {
+		for (int j = 0; j < L.cols(); j++) {
+			if (round(L(i, j)) != 0) {
+				I[round(L(i, j)) - 1].push_back(i*L.cols() + j);
+			}
+				
+			
+		}
+	}
+	for (int i = 0; i < index; i++) {
+		qrcode::eList *elist = new qrcode::eList();
+		for (int j = 0; j < I[i].size(); j++) {
+			int a = I[i][j];
+			int b = I[i][j] + L.cols();
+			int c = I[i][j] + 1;
+			int d = I[i][j] + L.cols() + 1;
+		
+ 			elist->add(a, b, 0);
+ 			elist->add(b, d, 0);
+ 			elist->add(d, c, 0);
+ 			elist->add(c, a, 0);
+		}
+ 		elist->matrix(E);
+		delete elist;
+		_E = E.block(0, 0, E.rows(), 2);
+		qrcode::outBound(_E, 0,L.cols(), outer);
+		outer.cast<double>();
+		/*temp.resize( outer.rows(), 2);
+		for (int k = 0; k < outer.rows(); k++) {
+			temp.row(k) << int(outer(k, 1) / L.cols()*scale), int(outer(k, 1) % L.cols()*scale);
+		}*/
+		/*igl::matlab::mlsetmatrix(&engine, "temp",temp);
+		igl::matlab::mlsetscalar(&engine, "i", i);
+		igl::matlab::mleval(&engine, "figure(i)");
+		igl::matlab::mleval(&engine, "plot(temp(:,2),-temp(:,1));");*/
+		igl::matlab::mlsetmatrix(&engine, "E", _E);
+		igl::matlab::mlsetmatrix(&engine, "B", outer);
+		igl::matlab::mleval(&engine, "H=setdiff(E,B,'rows');");
+		igl::matlab::mlgetmatrix(&engine, "H", hole);
+		outer.cast<int>();
+		hole.cast<int>();
+		V_index[i].push_back(outer);
+		V_index[i].push_back(hole);
+
+	}
+	E.resize(0, 0);
+	_E.resize(0, 0);
+	outer.resize(0, 0);
+	hole.resize(0, 0);
 	return true;
 }
 
