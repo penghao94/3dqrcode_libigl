@@ -110,23 +110,14 @@ bool qrcode::bwindex(Engine *engine,Eigen::MatrixXd &V_pxl,Eigen::MatrixXd & L,i
 	return true;
 }
 
-bool qrcode::bwindex(Engine * engine, Eigen::MatrixXd & L, int scale, std::vector<std::vector<Eigen::MatrixXi>>& V_index)
+bool qrcode::bwindex(Engine * engine, Eigen::MatrixXd & L, int scale, std::vector<Eigen::MatrixXi>& V_index)
 {
 	using namespace std;
 	Eigen::MatrixXd C;
 	Eigen::MatrixXi E, _E;
-	Eigen::MatrixXi outer,hole;
-	//Eigen::MatrixXi temp;
+	Eigen::MatrixXi outer,hole,temp;
+	
 	std::vector<std::vector<int>> I;
-
-	/*for (int i = 0; i < L.rows(); i++) {
-		for (int j = 0; j < L.cols(); j++) {
-			if (L(i, j) != 31) {
-				L(i, j) = 0;
-			}else
-				L(i, j) = 1;
-		}
-	}*/
 	igl::unique(L, C);
 	int index = C.rows() - 1;
 	int col = L.cols()*scale;
@@ -159,30 +150,81 @@ bool qrcode::bwindex(Engine * engine, Eigen::MatrixXd & L, int scale, std::vecto
  		elist->matrix(E);
 		delete elist;
 		_E = E.block(0, 0, E.rows(), 2);
-		qrcode::outBound(_E, 0,L.cols(), outer);
-		outer.cast<double>();
+		hole = _E;
 		/*temp.resize( outer.rows(), 2);
 		for (int k = 0; k < outer.rows(); k++) {
 			temp.row(k) << int(outer(k, 1) / L.cols()*scale), int(outer(k, 1) % L.cols()*scale);
-		}*/
-		/*igl::matlab::mlsetmatrix(&engine, "temp",temp);
+		}	
+		igl::matlab::mlsetmatrix(&engine, "temp",temp);
 		igl::matlab::mlsetscalar(&engine, "i", i);
 		igl::matlab::mleval(&engine, "figure(i)");
 		igl::matlab::mleval(&engine, "plot(temp(:,2),-temp(:,1));");*/
-		igl::matlab::mlsetmatrix(&engine, "E", _E);
-		igl::matlab::mlsetmatrix(&engine, "B", outer);
-		igl::matlab::mleval(&engine, "H=setdiff(E,B,'rows');");
-		igl::matlab::mlgetmatrix(&engine, "H", hole);
-		outer.cast<int>();
-		hole.cast<int>();
-		V_index[i].push_back(outer);
-		V_index[i].push_back(hole);
-
+		temp.resize(0, 0);
+		while (hole.rows()!=0)
+		{
+			qrcode::outBound(hole, 0, L.cols(), outer);
+			outer.cast<double>();
+			igl::matlab::mlsetmatrix(&engine, "E",hole);
+			igl::matlab::mlsetmatrix(&engine, "B", outer);
+			igl::matlab::mleval(&engine, "H=setdiff(E,B,'rows');");
+			igl::matlab::mlgetmatrix(&engine, "H", hole);
+			outer.cast<int>();
+			hole.cast<int>();
+			temp.conservativeResize(temp.rows() + outer.rows(), 2);
+			temp.block(temp.rows()-outer.rows(),0, outer.rows(),2)<<outer;
+		}
+		V_index[i] = temp;
 	}
+	
 	E.resize(0, 0);
 	_E.resize(0, 0);
 	outer.resize(0, 0);
 	hole.resize(0, 0);
+	return true;
+}
+
+bool qrcode::bwindex(Eigen::MatrixXd & L, std::vector<Eigen::MatrixXi>& V_index)
+{
+	using namespace std;
+	Eigen::MatrixXd C;
+	Eigen::MatrixXi E, _E;
+
+	std::vector<std::vector<int>> I;
+	igl::unique(L, C);
+	int index = C.rows() - 1;
+	C.resize(0, 0);
+	I.resize(index);
+	V_index.resize(index);
+
+	for (int i = 0; i < L.rows(); i++) {
+		for (int j = 0; j < L.cols(); j++) {
+			if (round(L(i, j)) != 0) {
+				I[round(L(i, j)) - 1].push_back(i*L.cols() + j);
+			}
+
+
+		}
+	}
+	for (int i = 0; i < index; i++) {
+		qrcode::eList *elist = new qrcode::eList();
+		for (int j = 0; j < I[i].size(); j++) {
+			int a = I[i][j];
+			int b = I[i][j] + L.cols();
+			int c = I[i][j] + 1;
+			int d = I[i][j] + L.cols() + 1;
+
+			elist->add(a, b, 0);
+			elist->add(b, d, 0);
+			elist->add(d, c, 0);
+			elist->add(c, a, 0);
+		}
+		elist->matrix(E);
+		delete elist;
+		_E = E.block(0, 0, E.rows(), 2);
+		V_index[i] = _E;
+	}
+	E.resize(0, 0);
+	_E.resize(0, 0);
 	return true;
 }
 
@@ -191,11 +233,11 @@ bool qrcode::upperpoint(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Matrix4
 	v_num = 0;
 	f_num = 0;
 	int f = 0;
-	Eigen::MatrixXd _V(V.rows(),4);
+	Eigen::MatrixXd _V(V.rows(), 4);
 	_V.block(0, 0, _V.rows(), 3) << V;
 	_V.col(3).setConstant(1);
-	_V = (mode*(V.transpose().cast<float>())).transpose().cast<double>().block(0,0,_V.rows(),3);
-	double minP = _V.block(rest_V, 2,  wht_V, 1).minCoeff();
+	_V = (mode*(_V.transpose().cast<float>())).transpose().cast<double>().block(0, 0, _V.rows(), 3);
+	double minP = _V.block(rest_V, 2, wht_V, 1).minCoeff();
 
 	upnt.setZero(V.rows());
 	ufct.setZero(F.rows());
@@ -213,7 +255,7 @@ bool qrcode::upperpoint(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Matrix4
 			f_num++;
 		}
 	}
-	
-	
+
+
 	return true;
 }

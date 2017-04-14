@@ -25,6 +25,7 @@ Self-definition function
 #include "bwlabel.h"
 #include "visibility.h"
 #include "gaussianKernel.h"
+#include "cut_plane.h"
 /*
 Calling function
 */
@@ -77,7 +78,7 @@ int main(int argc, char *argv[])
 	Eigen::MatrixXi F_rest;
 	Eigen::MatrixXi E_rest;
 	//Parameters of triangulate
-	Eigen::Matrix4f mode;
+	Eigen::Matrix4f mode,model;
 	Eigen::MatrixXi F_tri;
 	//Parameters of final model
 	Eigen::MatrixXd V_fin;
@@ -88,7 +89,11 @@ int main(int argc, char *argv[])
 	Eigen::MatrixXd BW;
 	//Output of bwlindex
 	vector<Eigen::MatrixXd> B_cnn;
-	std::vector<std::vector<Eigen::MatrixXi> > B_cii;
+	vector<Eigen::MatrixXi> B_cxx;
+	vector<Eigen::MatrixXi> B_cii;
+	//Output of cut Plane
+	double minZ, t;
+	vector<vector<Eigen::MatrixXd>> B_mdl;
 	//Output of upperpoint
 	Eigen::VectorXi upnt;
 	Eigen::VectorXi ufct;
@@ -151,12 +156,12 @@ int main(int argc, char *argv[])
 		viewer.ngui->addButton("Image to mesh", [&]() {
 			timer.start();
 			mode = viewer.core.model;
-			mode.inverse();
 			if (V.rows() != 0 && D.rows() != 0) {
 				wht_num = qrcode::img_to_sep_mesh(viewer, V, F, D, scale, acc, F_hit, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th,V_pxl);
 			}
 			th_crv.resize(th.rows(), th.cols());
-			th_crv.setConstant(0.003);
+			th_crv.setConstant(0.01);
+			
 			cout << "Image to mesh time = " << timer.getElapsedTime() << endl;
 		});
 		viewer.ngui->addButton("Display", [&]() {
@@ -196,17 +201,33 @@ int main(int argc, char *argv[])
 			F_fin.block(F_rest.rows() + F_qr.rows(), 0, F_tri.rows(), 3) << F_tri;
 			viewer.data.set_face_based(true);
 			viewer.data.set_mesh(V_fin, F_fin);
+			B_mdl.clear();
+			minZ = 0, t = 0;
+			qrcode::cut_plane(V_fin, F_fin, mode,10, B_mdl,minZ,t);
 			cout << "Model vertex: " << V_fin.rows() << endl << "Model facet: " << F_fin.rows() << endl;
 			cout << "Merge time = " << timer.getElapsedTime() << endl;
+			
+			for (int i = 0; i < B_mdl.size(); i++) {
+				for (int j = 0; j < B_mdl[i][0].rows(); j++) {
+					Eigen::MatrixXd Eg(2, 3);
+					Eg.row(0) << B_mdl[i][0].row(j);
+					Eg.row(1) << B_mdl[i][1].row(j);
+					igl::matlab::mlsetmatrix(&engine, "E", Eg);
+					igl::matlab::mleval(&engine, "plot3(E(:,1),E(:,2),E(:,3))");
+					igl::matlab::mleval(&engine, "hold on");
+				}	
+			}
+			
 		});
 
 		viewer.ngui->addButton("Calculate area", [&]() {
 			timer.start();
 			qrcode::bwlabel(engine,D, 4, BW);
-			qrcode::bwindex(engine,BW,scale,B_cii);
-			//qrcode::upperpoint(V_fin, F_fin, mode, V_rest.rows(), wht_num, F_rest.rows(), 2 * (wht_num - D.rows() - D.cols() + 1), upnt, ufct,v_num,f_num);
-			//qrcode::visibility(engine, Src, Dir, th, th_crv, BW, B_cnn, V_fin, F_fin, ufct, v_num, f_num, Vis);
-			//cout << Vis << endl;
+			qrcode::bwindex(BW,B_cxx);
+			//qrcode::bwindex(engine,BW, scale,B_cii);
+			qrcode::upperpoint(V_fin, F_fin, mode, V_rest.rows(), wht_num, F_rest.rows(), 2 * (wht_num - D.rows() - D.cols() + 1), upnt, ufct,v_num,f_num);
+			qrcode::visibility(engine,V_pxl, Src, Dir, th, th_crv, BW, B_cxx, V_fin, F_fin, ufct, v_num, f_num, Vis);
+			cout << Vis << endl;
 			cout << "Area time = " << timer.getElapsedTime() << endl;
 		});
 		

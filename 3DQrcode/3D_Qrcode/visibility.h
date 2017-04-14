@@ -17,6 +17,8 @@
 namespace qrcode {
 	bool visibility(Engine *engine, Eigen::MatrixXf &Src, Eigen::MatrixXf &Dir, Eigen::MatrixXd &th, Eigen::MatrixXd &th_crv, Eigen::MatrixXd &BW, std::vector<Eigen::MatrixXd> &B_cnn,
 		Eigen::MatrixXd &V_fin, Eigen::MatrixXi &F_fin, Eigen::VectorXi &ufct, int v_num, int f_num,Eigen::MatrixXd &vis);
+	bool visibility(Engine *engine, Eigen::MatrixXd &V_pxl, Eigen::MatrixXf &Src, Eigen::MatrixXf &Dir, Eigen::MatrixXd &th, Eigen::MatrixXd &th_crv, Eigen::MatrixXd &BW, std::vector<Eigen::MatrixXi>&B_cnn,
+		Eigen::MatrixXd &V_fin, Eigen::MatrixXi &F_fin, Eigen::VectorXi &ufct, int v_num, int f_num, Eigen::MatrixXd &vis);
 }
 #endif // !VISIBILITY_H
 
