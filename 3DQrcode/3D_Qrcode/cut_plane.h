@@ -13,7 +13,7 @@
 #include<Eigen/core>
 #include<iostream>
 #include<vector>
-
+#include "igl/matlab/matlabinterface.h"
 #include <CGAL/AABB_intersections.h> 
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>
@@ -24,7 +24,7 @@
 #include <CGAL/AABB_face_graph_triangle_primitive.h>
 
 namespace qrcode {
-	bool cut_plane(Eigen::MatrixXd &V, Eigen::MatrixXi &F, Eigen::Matrix4f &mode,int layer, std::vector<std::vector<Eigen::MatrixXd>> &B,double minZ,double t);
+	bool cut_plane(Engine *engine,Eigen::MatrixXd &V, Eigen::MatrixXi &F, Eigen::Matrix4f &mode,int layer, std::vector<std::vector<Eigen::MatrixXd>> &B,double &minZ,double &t,Eigen::MatrixXd &Box);
 
 }
 #endif // !CUTPLANRE_H

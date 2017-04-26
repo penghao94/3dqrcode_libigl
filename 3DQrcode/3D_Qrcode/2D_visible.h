@@ -14,6 +14,7 @@
 #include <CGAL/Triangular_expansion_visibility_2.h>
 #include <CGAL/Arr_segment_traits_2.h>
 #include <CGAL/Arrangement_2.h>
+#include <igl/matlab/matlabinterface.h>
 #include <iostream>
 #include <vector>
 #include <Eigen/core>
@@ -43,7 +44,7 @@ namespace qrcode {
 	// @Param std::vector<std::vector<Eigen::MatrixXd>> & B
 	// @Param std::vector<Eigen::MatrixXd> & R
 	//************************************
-	bool lightRegion(Eigen::Vector3d &query_point,Eigen::Matrix4f& mode,double minZ,double t,std::vector<std::vector<Eigen::MatrixXd>>&B, std::vector<Eigen::MatrixXd>&R);
+	bool lightRegion(Engine *engine,Eigen::VectorXd &src, Eigen::VectorXd &dir,Eigen::Matrix4f& mode,double minZ,double t,Eigen::MatrixXd &Box,std::vector<std::vector<Eigen::MatrixXd>>&B, std::vector<std::vector<Eigen::MatrixXd>>& R);
 }
 #endif // !2DVISIBLE_H
 

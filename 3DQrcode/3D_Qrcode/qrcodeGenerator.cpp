@@ -26,7 +26,7 @@ bool qrcode::writePNG(std::string file, Eigen::MatrixXd & Q, int scale)
 		for (int j = 0; j < Q.cols()-1; j++) {
 			for (int x = 0; x < scale; x++) {
 				for (int y = 0; y < scale; y++) {
-					if (Q(i, Q.cols()-2-j) == 0) {
+					if (Q( Q.cols()-2-j,i) == 0) {
 						R(i*scale + x, j*scale + y) = 255;
 						G(i*scale + x, j*scale + y) = 255;
 						B(i*scale + x, j*scale + y) = 255;

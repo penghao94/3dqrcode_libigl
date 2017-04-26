@@ -80,20 +80,20 @@ int qrcode::readData(const std::string file, Eigen::MatrixXd & D)
 		{
 		case 0:
 			qrCodeGenerator(str, qrcodegen::QrCode::Ecc::LOW, mask, border, D);
-			writePNG("qrcode.png",D, scale);
+			writePNG("qrcode.png",D, 5);
 			
 			break;
 		case 1:
 			qrCodeGenerator(str, qrcodegen::QrCode::Ecc::MEDIUM, mask, border, D);
-			writePNG("qrcode.png", D, scale);
+			writePNG("qrcode.png", D, 5);
 			break;
 		case 2:
 			qrCodeGenerator(str, qrcodegen::QrCode::Ecc::QUARTILE, mask, border, D);
-			writePNG("qrcode.png", D, scale);
+			writePNG("qrcode.png", D, 5);
 			break;
 		case 3:
 			qrCodeGenerator(str, qrcodegen::QrCode::Ecc::HIGH, mask, border, D);
-			writePNG("qrcode.png", D, scale);
+			writePNG("qrcode.png", D, 5);
 			break;
 		}
 		return scale;

@@ -26,6 +26,7 @@ Self-definition function
 #include "visibility.h"
 #include "gaussianKernel.h"
 #include "cut_plane.h"
+#include "sphericalPolygen.h"
 /*
 Calling function
 */
@@ -71,8 +72,10 @@ int main(int argc, char *argv[])
 	int wht_num;					//number of white block
 	//Parameters of carve mesh down
 	int mul;
+	double depth=0;
 	Eigen::MatrixXd th_crv;         //carved than
 	Eigen::MatrixXd V_qr; 
+	Eigen::MatrixXd T;
 	//Parameters of cut mesh
 	Eigen::MatrixXd V_rest;
 	Eigen::MatrixXi F_rest;
@@ -93,6 +96,7 @@ int main(int argc, char *argv[])
 	vector<Eigen::MatrixXi> B_cii;
 	//Output of cut Plane
 	double minZ, t;
+	Eigen::MatrixXd Box;
 	vector<vector<Eigen::MatrixXd>> B_mdl;
 	//Output of upperpoint
 	Eigen::VectorXi upnt;
@@ -110,7 +114,10 @@ int main(int argc, char *argv[])
 		0, 0, 1, 1, 1, 0, 0,
 		0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0;
+	//qrcode::test(D, T);
 	scale = 1;
+
+
 	// UI Design
 	viewer.callback_init = [&](igl::viewer::Viewer& viewer)
 	{
@@ -152,15 +159,15 @@ int main(int argc, char *argv[])
 		});
 
 		viewer.ngui->addGroup("Qr code Operator");
-
+		viewer.ngui->addVariable("Depth", depth);
 		viewer.ngui->addButton("Image to mesh", [&]() {
 			timer.start();
 			mode = viewer.core.model;
 			if (V.rows() != 0 && D.rows() != 0) {
 				wht_num = qrcode::img_to_sep_mesh(viewer, V, F, D, scale, acc, F_hit, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th,V_pxl);
 			}
-			th_crv.resize(th.rows(), th.cols());
-			th_crv.setConstant(0.01);
+			
+			//th_crv = (T.array()*(0.25 / 8 / abs(Dir(int(Dir.rows() / 2), 2)))).matrix();
 			
 			cout << "Image to mesh time = " << timer.getElapsedTime() << endl;
 		});
@@ -176,6 +183,8 @@ int main(int argc, char *argv[])
 			
 		});
 		viewer.ngui->addButton("Carved Model", [&]() {
+			th_crv.resize(th.rows(), th.cols());
+			th_crv.setConstant(depth / abs(Dir(int(Dir.rows() / 2), 2)));
 			timer.start();
 			viewer.data.clear();
 			mul = scale*acc;
@@ -203,11 +212,12 @@ int main(int argc, char *argv[])
 			viewer.data.set_mesh(V_fin, F_fin);
 			B_mdl.clear();
 			minZ = 0, t = 0;
-			qrcode::cut_plane(V_fin, F_fin, mode,10, B_mdl,minZ,t);
+			qrcode::cut_plane(engine,V_fin, F_fin, mode,10, B_mdl,minZ,t,Box);
 			cout << "Model vertex: " << V_fin.rows() << endl << "Model facet: " << F_fin.rows() << endl;
 			cout << "Merge time = " << timer.getElapsedTime() << endl;
 			
-			for (int i = 0; i < B_mdl.size(); i++) {
+			/*for (int i = 0; i < B_mdl.size(); i++) {
+				cout << i << endl; 
 				for (int j = 0; j < B_mdl[i][0].rows(); j++) {
 					Eigen::MatrixXd Eg(2, 3);
 					Eg.row(0) << B_mdl[i][0].row(j);
@@ -216,7 +226,7 @@ int main(int argc, char *argv[])
 					igl::matlab::mleval(&engine, "plot3(E(:,1),E(:,2),E(:,3))");
 					igl::matlab::mleval(&engine, "hold on");
 				}	
-			}
+			}*/
 			
 		});
 
@@ -225,9 +235,10 @@ int main(int argc, char *argv[])
 			qrcode::bwlabel(engine,D, 4, BW);
 			qrcode::bwindex(BW,B_cxx);
 			//qrcode::bwindex(engine,BW, scale,B_cii);
-			qrcode::upperpoint(V_fin, F_fin, mode, V_rest.rows(), wht_num, F_rest.rows(), 2 * (wht_num - D.rows() - D.cols() + 1), upnt, ufct,v_num,f_num);
-			qrcode::visibility(engine,V_pxl, Src, Dir, th, th_crv, BW, B_cxx, V_fin, F_fin, ufct, v_num, f_num, Vis);
-			cout << Vis << endl;
+			//qrcode::upperpoint(V_fin, F_fin, mode, V_rest.rows(), wht_num, F_rest.rows(), 2 * (wht_num - D.rows() - D.cols() + 1), upnt, ufct,v_num,f_num);
+			//qrcode::visibility(engine,V_pxl, Src, Dir, th, th_crv, BW, B_cxx, V_fin, F_fin, ufct, v_num, f_num, Vis);
+			//cout << Vis << endl;
+			qrcode::visibility(engine, V_pxl, Src, Dir, th, th_crv, BW, B_cxx, mode, minZ, t,Box, B_mdl, V_fin, Vis);
 			cout << "Area time = " << timer.getElapsedTime() << endl;
 		});
 		

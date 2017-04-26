@@ -1,8 +1,8 @@
 #include "cut_plane.h"
 #include <Eigen/dense>
-bool qrcode::cut_plane(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Matrix4f & mode, int layer, std::vector<std::vector<Eigen::MatrixXd>>& B, double minZ,double t)
+bool qrcode::cut_plane(Engine *engine, Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Matrix4f & mode, int layer, std::vector<std::vector<Eigen::MatrixXd>>& B, double& minZ,double& t, Eigen::MatrixXd &Box)
 {
-	//using namespace std;
+	using namespace std;
 	typedef CGAL::Simple_cartesian<double>								Kernel; // fastest in experiments
 	typedef Kernel::FT													FT;
 	typedef Kernel::Point_3												Point;
@@ -21,15 +21,29 @@ bool qrcode::cut_plane(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Matrix4f
 	Facet_tree m_facet_tree;
 	Intersections intersections;
 	Eigen::Matrix4f model=mode;
+	//cout << mode << endl;
 	model = model.inverse().eval();
 	Eigen::MatrixXd S,T;
 	//Translate model and getting bounding box
+	Eigen::MatrixXd _V(V.rows(),4);
+	Eigen::MatrixXi _F(F.rows(),3); 
+	Eigen::MatrixXd tmp(2, 3);
+	_V.block(0, 0, V.rows(), 3) << V;
+	_F.block(0, 0, F.rows(), 3) << F;
+	_V.col(3).setConstant(1);
+	_V = (mode*(_V.transpose().cast<float>())).transpose().cast<double>().block(0, 0, _V.rows(), 3);
 	// Find the bounding box
-	Eigen::Vector3d m = V.colwise().minCoeff();
-	Eigen::Vector3d M = V.colwise().maxCoeff();
+	Eigen::Vector3d m = _V.colwise().minCoeff();
+	Eigen::Vector3d M = _V.colwise().maxCoeff();
+	t = 0.999*(M(2) -m(2)) / layer;
+	minZ = m(2)+0.0005*(M(2) - m(2));
+	//cout << minZ << "+" << t << endl;
 	Eigen::Vector3d centriod = (M + m) / 2;
-	M = centriod + 100 * (M - centriod);
-	m = centriod + 100 * (m - centriod);
+	M = centriod + 2 * (M - centriod);
+	m = centriod + 2 * (m - centriod);
+	Box.resize(2, 3);
+	Box.row(0) << M.transpose();
+	Box.row(1) << m.transpose();
 	// Corners of the bounding box
 	Eigen::MatrixXd V_box(8, 3);
 	V_box <<
@@ -41,7 +55,6 @@ bool qrcode::cut_plane(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Matrix4f
 		M(0), m(1), m(2),
 		M(0), M(1), m(2),
 		m(0), M(1), m(2);
-		
 	//Faces of bounding box
 	Eigen::MatrixXi F_box(12, 3);
 	F_box <<
@@ -57,19 +70,11 @@ bool qrcode::cut_plane(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Matrix4f
 		1, 6, 2,
 		0, 7, 4,
 		0, 3, 7;
-	
-	Eigen::MatrixXd _V(V.rows()+8,4);
-	Eigen::MatrixXi _F(F.rows() + 12, 3);
-
-	_V.block(0, 0, V.rows(), 3) << V;
+	_V.conservativeResize(_V.rows() + 8, 3);
+	_F.conservativeResize(_F.rows() + 12, 3);
 	_V.block(V.rows(), 0, 8, 3) << V_box;
-	_F.block(0, 0, F.rows(), 3) << F;
-	_F.block(F.rows(), 0, 12, 3) << (F_box.array() + V.rows()).matrix();
-	_V.col(3).setConstant(1);
-	_V = (mode*(_V.transpose().cast<float>())).transpose().cast<double>().block(0, 0, _V.rows(), 3);
-	double maxZ = _V.block(0,2,_V.rows()-8,1).maxCoeff();
-	minZ = _V.block(0, 2, _V.rows() - 8, 1).minCoeff();
-	t = (maxZ - minZ-0.000001) / layer;
+	_F.block(F.rows(), 0, 12, 3) << (F_box.array()+V.rows()).matrix();
+
 	//Construct polyhedron
 	m_polyhedron = new Polyhedron;
 	for (int i = 1; i < _F.rows(); i++) {
@@ -82,7 +87,7 @@ bool qrcode::cut_plane(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Matrix4f
 	m_facet_tree.accelerate_distance_queries();
 	std::cout << "Construct AABB tree done." << std::endl;
 	//Cutting model depending on layer
-	for (int i = 1; i <= layer; i++) {
+	for (int i = 0; i <= layer; i++) {
 		intersections.clear();
 		Plane plane(Point(0,0,minZ+i*t), Point(0, 1, minZ + i*t), Point(1, 1, minZ + i*t));
 		m_facet_tree.all_intersections(plane, std::back_inserter(intersections));
@@ -103,13 +108,23 @@ bool qrcode::cut_plane(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Matrix4f
 		for (int j = 0; j < m_cut_segments.size(); j++) {
 			S.row(j) << m_cut_segments[j].source().x(), m_cut_segments[j].source().y(), m_cut_segments[j].source().z();
 			T.row(j) << m_cut_segments[j].target().x(), m_cut_segments[j].target().y(), m_cut_segments[j].target().z();
+			tmp.row(0) << S.row(j);
+			tmp.row(1)<<T.row(j);
+			/*igl::matlab::mlsetmatrix(&engine, "temp", tmp);
+			igl::matlab::mleval(&engine, "plot3(temp(:,1),temp(:,2),temp(:,3))");
+			igl::matlab::mleval(&engine, "hold on");*/
 		}
+		
+		
+		//cout << temp << endl << endl;
+		
 		std::vector<Eigen::MatrixXd> temp;
 		temp.push_back(S);
 		temp.push_back(T);
 		B.push_back(temp);
 		temp.clear();
 	}
+	cout << B.size() << endl;
 	_V.resize(0, 0);
 	_F.resize(0, 0);
 	m_polyhedron->clear();

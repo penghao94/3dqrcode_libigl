@@ -10,15 +10,20 @@
 
 #pragma once
 #ifndef VISIBILITY_H
-#define VISILIBITY_H
+#define VISIBILITY_H
 #include <iostream>
 #include <Eigen/core>
 #include <igl/matlab/matlabinterface.h>
+#include <igl/matlab/MatlabWorkspace.h>
 namespace qrcode {
+
 	bool visibility(Engine *engine, Eigen::MatrixXf &Src, Eigen::MatrixXf &Dir, Eigen::MatrixXd &th, Eigen::MatrixXd &th_crv, Eigen::MatrixXd &BW, std::vector<Eigen::MatrixXd> &B_cnn,
 		Eigen::MatrixXd &V_fin, Eigen::MatrixXi &F_fin, Eigen::VectorXi &ufct, int v_num, int f_num,Eigen::MatrixXd &vis);
 	bool visibility(Engine *engine, Eigen::MatrixXd &V_pxl, Eigen::MatrixXf &Src, Eigen::MatrixXf &Dir, Eigen::MatrixXd &th, Eigen::MatrixXd &th_crv, Eigen::MatrixXd &BW, std::vector<Eigen::MatrixXi>&B_cnn,
 		Eigen::MatrixXd &V_fin, Eigen::MatrixXi &F_fin, Eigen::VectorXi &ufct, int v_num, int f_num, Eigen::MatrixXd &vis);
+	bool visibility(Engine *engine,Eigen::MatrixXd &V_pxl,Eigen::MatrixXf &Src,Eigen::MatrixXf &Dir,Eigen::MatrixXd &th,Eigen::MatrixXd &th_crv,Eigen::MatrixXd &BW,std::vector<Eigen::MatrixXi> &B_qr,
+		Eigen::Matrix4f &mode,double minZ,double t,Eigen::MatrixXd &box,std::vector<std::vector<Eigen::MatrixXd>>&B_md,Eigen::MatrixXd &V_fin,Eigen::MatrixXd &vis);
 }
+
 #endif // !VISIBILITY_H
 
