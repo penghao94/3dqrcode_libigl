@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 		});
 		viewer.ngui->addButton("Carved Model", [&]() {
 			th_crv.resize(th.rows(), th.cols());
-			th_crv.setConstant(depth / abs(Dir(int(Dir.rows() / 2), 2)));
+			th_crv.setConstant(depth / abs(Dir(int(Dir.rows() / 2), 2))); 
 			timer.start();
 			viewer.data.clear();
 			mul = scale*acc;

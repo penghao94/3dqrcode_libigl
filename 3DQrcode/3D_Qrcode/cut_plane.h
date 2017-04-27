@@ -22,7 +22,7 @@
 #include <CGAL/boost/graph/graph_traits_Polyhedron_3.h>
 #include <CGAL/AABB_halfedge_graph_segment_primitive.h>
 #include <CGAL/AABB_face_graph_triangle_primitive.h>
-
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 namespace qrcode {
 	bool cut_plane(Engine *engine,Eigen::MatrixXd &V, Eigen::MatrixXi &F, Eigen::Matrix4f &mode,int layer, std::vector<std::vector<Eigen::MatrixXd>> &B,double &minZ,double &t,Eigen::MatrixXd &Box);
 

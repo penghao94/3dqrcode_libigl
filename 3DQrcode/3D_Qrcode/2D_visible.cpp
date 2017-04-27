@@ -75,7 +75,7 @@ bool qrcode::lightRegion(Engine *engine, Eigen::VectorXd &src, Eigen::VectorXd &
 	Arrangement_2 env;
 	Arrangement_2 output_arr;
 	for (int i = 0; i < B.size(); i++) {
-		cout << i << endl;
+		//cout << i << endl;
 		double r = (minZ + i*t - S(2)) / (D(2)-S(2));
 		Point_2 query(S(0) + r*(D(0) - S(0)), S(1) + r*(D(1) - S(1)));
 		//Eigen::MatrixXd Q(1, 3);
@@ -90,7 +90,6 @@ bool qrcode::lightRegion(Engine *engine, Eigen::VectorXd &src, Eigen::VectorXd &
 			Point_2 s(B[i][0](j, 0), B[i][0](j, 1));
 			Point_2 d(B[i][1](j, 0) , B[i][1](j, 1));
 			segments.push_back(Segment_2(s, d));
-			
 			/*Eigen::MatrixXd Eg(2, 3);
 			Eg.row(0) << B[i][0].row(j);
 			Eg.row(1) << B[i][1].row(j);
@@ -117,7 +116,6 @@ bool qrcode::lightRegion(Engine *engine, Eigen::VectorXd &src, Eigen::VectorXd &
 				std::cout << "Holy shit" << std::endl;
 			}
 		}
-
 		TEV tev(env);
 		Face_handle fh = tev.compute_visibility(query, fit, output_arr);
 		double x, y;
@@ -132,13 +130,15 @@ bool qrcode::lightRegion(Engine *engine, Eigen::VectorXd &src, Eigen::VectorXd &
 		}
 		vertex.push_back(Eigen::Vector4d(CGAL::to_double(curr->source()->point().x()), CGAL::to_double(curr->source()->point().y()),minZ+t*(i+1),1));
 		while (++curr != fh->outer_ccb()) {
-			if (abs(CGAL::to_double(curr->source()->point().x()) -x)<0.000001&&abs(CGAL::to_double(curr->source()->point().y()) - y)<0.000001) {
+		/*	if (abs(CGAL::to_double(curr->source()->point().x()) -x)<0.000001&&abs(CGAL::to_double(curr->source()->point().y()) - y)<0.000001) {
 				if (!vertex.empty()) {
 					vertex.pop_back();
 					flag.pop_back();
 				}
-			}
-			else{
+			}*/
+			//else
+			Segment_2 check(curr->source()->point(), curr->target()->point());
+			if (!check.is_degenerate()) {
 				x = CGAL::to_double(curr->source()->point().x());
 				y = CGAL::to_double(curr->source()->point().y());
 				if (x == Box(0, 0) || x == Box(0, 1) || y == Box(0, 1) || y == Box(1, 1)) {
@@ -149,7 +149,9 @@ bool qrcode::lightRegion(Engine *engine, Eigen::VectorXd &src, Eigen::VectorXd &
 				}
 				vertex.push_back(Eigen::Vector4d(CGAL::to_double(curr->source()->point().x()), CGAL::to_double(curr->source()->point().y()), minZ + t*i, 1));
 			}
+			
 		}
+		//}
 		Eigen::MatrixXd E(vertex.size(), 4);
 		Eigen::MatrixXd G(vertex.size(), 1);
 		for(int j=0;j<vertex.size();j++){
@@ -159,8 +161,8 @@ bool qrcode::lightRegion(Engine *engine, Eigen::VectorXd &src, Eigen::VectorXd &
 		/*igl::matlab::mleval(&engine, "figure");
 		igl::matlab::mlsetmatrix(&engine, "temp", E);
 		igl::matlab::mleval(&engine, "plot(temp(:,1),temp(:,2))");	
-		igl::matlab::mleval(&engine, "hold on");
-		cout << E << endl;*/
+		igl::matlab::mleval(&engine, "hold on");*/
+		//cout << E << endl;
 		E = (model*(E.transpose().cast<float>())).transpose().cast<double>().block(0, 0, E.rows(), 3);
 		T.push_back(E);
 		T.push_back(G);

@@ -258,9 +258,7 @@ bool qrcode::visibility(Engine *engine, Eigen::MatrixXd &V_pxl, Eigen::MatrixXf 
 	using namespace std;
 	using namespace Eigen;
 	igl::matlab::MatlabWorkspace mw;
-	MatrixXd Exp;
-	Exp.resize(BW.rows()-1, BW.cols()-1);
-	Exp.setConstant(0.5);
+	
 	//scale of a module
 	int scale = th.rows() / BW.rows();
 	int col = th.cols();
@@ -273,7 +271,8 @@ bool qrcode::visibility(Engine *engine, Eigen::MatrixXd &V_pxl, Eigen::MatrixXf 
 	//the ratio of visible area and hemisphere
 	double ratio;
 	Vector3d edge1, edge2;
-	vis.setZero(th.rows(), th.cols());
+	vis.resize((BW.rows() - 1)*scale, (BW.cols() - 1)*scale);
+	vis.setConstant(0.5);
 	//Source and destination for each pixel
 	VectorXd v_src(3), v_des(3), v_cent(3), dir(3),des(3);
 	//Bound verticals of 2D light region for each pixel
@@ -328,17 +327,19 @@ bool qrcode::visibility(Engine *engine, Eigen::MatrixXd &V_pxl, Eigen::MatrixXf 
 						}
 						//cout << V_qr << endl << endl;
 						//To get model bound verticals of 3D light region for each pixel
-							/*qrcode::lightRegion(engine,v_src,des, mode,minZ,t,box,B_md,V_md);
+							qrcode::lightRegion(engine,v_src,des, mode,minZ,t,box,B_md,V_md);
 							for (int k = 0; k < V_md.size(); k++) {
 								V_mdl.push_back((V_md[k][0]-(v_src.transpose().replicate(V_md[k][0].rows(),1))).rowwise().normalized());
 								V_flag.push_back(V_md[k][1]);
 								//cout << V_mdl[k] << endl;
-							}*/
-							//double area=qrcode::multiIntersection(engine,V_qr, V_mdl,V_flag,rot, Region)/(4*PI);
+							}
+							//cout << V_mdl.size() << endl;
+							double area=qrcode::multiIntersection(engine,V_qr, V_mdl,V_flag,rot, Region)/(4*PI);
 							//cout << area << endl;
-							double area = qrcode::qrArea(engine, V_qr, rot) / (4 * PI);
-							Exp(i,j) = area;
-							cout << area << endl;
+							/*double area = qrcode::qrArea(engine, V_qr, rot) / (4 * PI);*/
+							vis(x,y) = area;
+							//cout << area << endl;
+							V_mdl.clear();
 						/*//To calculate the ratio of visibility
 						ratio = 0;
 						for (int k = 0; k < B.size(); k++) {
@@ -357,7 +358,7 @@ bool qrcode::visibility(Engine *engine, Eigen::MatrixXd &V_pxl, Eigen::MatrixXf 
 			}
 		}
 	}
-	mw.save(Exp, "Exp");
+	mw.save(vis, "Exp");
 	mw.write("Experiment.mat");
 	V_mdl.clear();
 	return true;

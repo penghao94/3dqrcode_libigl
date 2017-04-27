@@ -10,7 +10,7 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 	
 	using namespace std;
 	const double pi = 3.1415926535898;
-	Eigen::MatrixXd temp;
+	//Eigen::MatrixXd temp;
 	Eigen::VectorXd a(2);
 	double b;
 	int index;
@@ -20,7 +20,7 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 	typedef	bg::model::point<double, 2, bg::cs::spherical_equatorial<bg::radian>> Point_s;
 	typedef bg::model::polygon<Point_c> Polygon;
 	typedef bg::model::polygon<Point_s> Polygon_s;
-	Polygon t;
+	Polygon t,r;
 	double x, y, z,w,flag;
 	
 	std::deque<Polygon> output;
@@ -28,7 +28,7 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 
 	polygons.resize(V_md.size() + 1);
 	V_qr = (rot*V_qr.transpose()).transpose();
-	temp.resize(V_qr.rows()+5, 3);
+	//temp.resize(V_qr.rows()+5, 3);
 	
 
 	/*
@@ -51,17 +51,17 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 					//y=(y2-y1)/(2pi-x2+x1)*(pi+x1)+y1
 					b = (asin(z) - a(1)) / (2 * pi - pi + asin(y / w) + a(0))*(pi + a(0)) + a(1);
 					polygons[0].outer().push_back(Point_c(-pi, b));
-					temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
-					index++;
+					//temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
+					//index++;
 					polygons[0].outer().push_back(Point_c(-pi, 1.57079632));
-					temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
-					index++;
+					//temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
+					//index++;
 					polygons[0].outer().push_back(Point_c(pi, 1.57079632));
-					temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
-					index++;
+					//temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
+					//index++;
 					polygons[0].outer().push_back(Point_c(pi, b));
-					temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
-					index++;
+					//temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
+					//index++;
 					polygons[0].outer().push_back(Point_c(pi - asin(y / w), asin(z)));
 				}
 				else
@@ -81,8 +81,8 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 			}
 				
 		}
-		temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(),0;
-		index++;
+		//temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(),0;
+		//index++;
 	}
 	
 	x = V_qr(0, 0);
@@ -99,17 +99,17 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 				//y=(y2-y1)/(2pi-x2+x1)*(pi+x1)+y1
 				b = (asin(z) - a(1)) / (2 * pi - pi + asin(y / w) + a(0))*(pi + a(0)) + a(1);
 				polygons[0].outer().push_back(Point_c(-pi, b));
-				temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
-				index++;
+				//temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
+				//index++;
 				polygons[0].outer().push_back(Point_c(-pi, 1.57079632));
-				temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
-				index++;
+				//temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
+			//	index++;
 				polygons[0].outer().push_back(Point_c(pi, 1.57079632));
-				temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
-				index++;
+				//temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
+			//	index++;
 				polygons[0].outer().push_back(Point_c(pi, b));
-				temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
-				index++;
+				//temp.row(index) << polygons[0].outer().back().x(), polygons[0].outer().back().y(), 0;
+				//index++;
 				polygons[0].outer().push_back(Point_c(pi - asin(y / w), asin(z)));
 			}
 			else
@@ -129,13 +129,13 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 		}
 
 	}
-	temp.row(temp.rows()-1) << polygons[0].outer().back().x(), polygons[0].outer().back().y(),0;
+	//temp.row(temp.rows()-1) << polygons[0].outer().back().x(), polygons[0].outer().back().y(),0;
 
-	igl::matlab::mlsetmatrix(&engine, "temp", temp);
-	igl::matlab::mleval(&engine, "plot(temp(:, 1), temp(:, 2))");
-	igl::matlab::mleval(&engine, "hold on");
-	cout << bg::wkt(polygons[0]) << endl;
-	cout << bg::area(polygons[0]) << endl;
+	//igl::matlab::mlsetmatrix(&engine, "temp", temp);
+	//igl::matlab::mleval(&engine, "plot(temp(:, 1), temp(:, 2))");
+	//igl::matlab::mleval(&engine, "hold on");
+	//cout << bg::wkt(polygons[0]) << endl;
+	//cout << bg::area(polygons[0]) << endl;
 
 
 	/*
@@ -144,7 +144,8 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 	index = 0;
 	for (int i = 0; i < V_md.size(); i++) {
 		V_md[i] = (rot*V_md[i].transpose()).transpose();
-		temp.resize(V_md[i].rows() + 5,3);
+		//cout << V_md[i] << endl;
+		//temp.resize(V_md[i].rows() + 1,3);
 		index = 0;
 		a << 1, 1;
 		for (int j = 0; j < V_md[i].rows(); j++) {
@@ -166,19 +167,20 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 				else {
 					if (a(0) < 0) {
 						//y=(y2-y1)/(2pi-x2+x1)*(pi+x1)+y1
+					//	temp.conservativeResize(temp.rows() + 4, 3);
 						b = (asin(z) - a(1)) / (2 * pi - pi + asin(y / w) + a(0))*(pi + a(0)) + a(1);
 						polygons[i + 1].outer().push_back(Point_c(-pi, b));
-						temp.row(index) << polygons[i+1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
-						index++;
+						//temp.row(index) << polygons[i+1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
+					//	index++;
 						polygons[i + 1].outer().push_back(Point_c(-pi, 1.57079632));
-						temp.row(index) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
-						index++;
+					//	temp.row(index) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
+					//	index++;
 						polygons[i + 1].outer().push_back(Point_c(pi, 1.57079632));
-						temp.row(index) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
-						index++;
+					//	temp.row(index) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
+					//	index++;
 						polygons[i + 1].outer().push_back(Point_c(pi, b));
-						temp.row(index) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
-						index++;
+					//	temp.row(index) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
+					//	index++;
 						polygons[i + 1].outer().push_back(Point_c(pi - asin(y / w), asin(z)));
 					}
 					else
@@ -198,7 +200,7 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 				}
 
 			}
-			temp.row(index) << polygons[i+1].outer().back().x(), polygons[i+1].outer().back().y(), 0;
+			//temp.row(index) << polygons[i+1].outer().back().x(), polygons[i+1].outer().back().y(), 0;
 			index++;
 		}
 		x = V_md[i](V_md[i].rows()-1, 0);
@@ -216,19 +218,20 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 			else {
 				if (a(0) < 0) {
 					//y=(y2-y1)/(2pi-x2+x1)*(pi+x1)+y1
+					//temp.conservativeResize(temp.rows() + 4, 3);
 					b = (asin(z) - a(1)) / (2 * pi - pi + asin(y / w) + a(0))*(pi + a(0)) + a(1);
 					polygons[i + 1].outer().push_back(Point_c(-pi, b));
-					temp.row(index) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
-					index++;
+					//temp.row(index) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
+				//	index++;
 					polygons[i + 1].outer().push_back(Point_c(-pi, 1.57079632));
-					temp.row(index) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
-					index++;
+				//	temp.row(index) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
+				//	index++;
 					polygons[i + 1].outer().push_back(Point_c(pi, 1.57079632));
-					temp.row(index) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
-					index++;
+				//	temp.row(index) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
+					//index++;
 					polygons[i + 1].outer().push_back(Point_c(pi, b));
-					temp.row(index) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
-					index++;
+					//temp.row(index) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
+					//index++;
 					polygons[i + 1].outer().push_back(Point_c(pi - asin(y / w), asin(z)));
 				}
 				else
@@ -249,30 +252,37 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 
 		}
 		
-		temp.row(temp.rows() - 1) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
-		igl::matlab::mlsetmatrix(&engine, "temp", temp);
-		igl::matlab::mleval(&engine, "plot(temp(:,1),temp(:,2))");
-		igl::matlab::mleval(&engine, "hold on");
-		cout << bg::wkt(polygons[i+1]) << endl;
-		cout << bg::area(polygons[i+1]) << endl;
+		//temp.row(temp.rows() - 1) << polygons[i + 1].outer().back().x(), polygons[i + 1].outer().back().y(), 0;
+		//igl::matlab::mlsetmatrix(&engine, "temp", temp);
+		//igl::matlab::mleval(&engine, "plot(temp(:,1),temp(:,2))");
+		//igl::matlab::mleval(&engine, "hold on");
+		//cout << bg::wkt(polygons[i+1]) << endl;
+		//cout << bg::area(polygons[i+1]) << endl;
 	}
 	//Polygon intersection
+	/*
+	Maybe there still exists bugs, but I have adapted a compromise plan
+	*/
  	for (int i = 0; i < polygons.size() - 1; i++) {
-		output.clear();
+		r.clear();
 		if (i == 0) {
-			bg::intersection(polygons[0], polygons[1], output);
+			r = polygons[0];
 			t.clear();
-			t = output[0];
+			t = r;
 		}
 		else
 		{
-			bg::intersection(t, polygons[i], output);
+			r = t;
+		}
+		output.clear();
+		bg::intersection(r, polygons[i], output);
+		if (output.size() != 0) {
 			t.clear();
 			t = output[0];
 		}
-		
+			
 	}
-	cout << bg::wkt(t) << endl;
+	//cout << bg::wkt(t) << endl;
 	//Cartesian coordinates
 	Polygon_s s;
 	dir.resize(t.outer().size(), 3);

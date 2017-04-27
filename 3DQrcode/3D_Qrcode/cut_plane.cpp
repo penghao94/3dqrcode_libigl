@@ -3,8 +3,8 @@
 bool qrcode::cut_plane(Engine *engine, Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Matrix4f & mode, int layer, std::vector<std::vector<Eigen::MatrixXd>>& B, double& minZ,double& t, Eigen::MatrixXd &Box)
 {
 	using namespace std;
-	typedef CGAL::Simple_cartesian<double>								Kernel; // fastest in experiments
-	typedef Kernel::FT													FT;
+	//typedef CGAL::Simple_cartesian<double>								Kernel; // fastest in experiments
+	typedef CGAL::Exact_predicates_exact_constructions_kernel       Kernel;
 	typedef Kernel::Point_3												Point;
 	typedef Kernel::Plane_3												Plane;
 	typedef Kernel::Segment_3											Segment;
@@ -100,16 +100,19 @@ bool qrcode::cut_plane(Engine *engine, Eigen::MatrixXd & V, Eigen::MatrixXi & F,
 
 			if (NULL != inter_seg)
 			{
-				m_cut_segments.push_back(*inter_seg);
+				if (!(inter_seg->is_degenerate())) {
+					m_cut_segments.push_back(*inter_seg);
+					
+				}
 			}
 		}
 		S.resize(m_cut_segments.size(), 3);
 		T.resize(m_cut_segments.size(), 3);
 		for (int j = 0; j < m_cut_segments.size(); j++) {
-			S.row(j) << m_cut_segments[j].source().x(), m_cut_segments[j].source().y(), m_cut_segments[j].source().z();
-			T.row(j) << m_cut_segments[j].target().x(), m_cut_segments[j].target().y(), m_cut_segments[j].target().z();
-			tmp.row(0) << S.row(j);
-			tmp.row(1)<<T.row(j);
+				S.row(j) << CGAL::to_double( m_cut_segments[j].source().x()),CGAL::to_double( m_cut_segments[j].source().y()), CGAL::to_double(m_cut_segments[j].source().z());
+				T.row(j) << CGAL::to_double(m_cut_segments[j].target().x()), CGAL::to_double(m_cut_segments[j].target().y()), CGAL::to_double(m_cut_segments[j].target().z());
+			//tmp.row(0) << S.row(j);
+			//tmp.row(1)<<T.row(j);
 			/*igl::matlab::mlsetmatrix(&engine, "temp", tmp);
 			igl::matlab::mleval(&engine, "plot3(temp(:,1),temp(:,2),temp(:,3))");
 			igl::matlab::mleval(&engine, "hold on");*/
