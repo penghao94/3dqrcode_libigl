@@ -16,6 +16,7 @@
 #include <igl/matlab/matlabinterface.h>
 namespace qrcode {
 	double multiIntersection(Engine *engine,Eigen::MatrixXd &V_qr,std::vector<Eigen::MatrixXd> &V_md,std::vector<Eigen::MatrixXd>&V_flag,Eigen::MatrixXd &rot,Eigen::MatrixXd &dir);
+	double multiIntersection(Engine *engine, std::vector<Eigen::MatrixXd> &V_md, std::vector<Eigen::MatrixXd>&V_flag, Eigen::MatrixXd &rot, Eigen::MatrixXd &dir);
 	double qrArea(Engine *engine, Eigen::MatrixXd &V_qr, Eigen::MatrixXd &rot);
 	void rotMatrix(Eigen::VectorXd &before, Eigen::VectorXd &after, Eigen::MatrixXd &rot);
 }

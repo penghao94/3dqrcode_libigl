@@ -36,7 +36,7 @@ namespace qrcode {
 	// @Param int & t
 	//************************************
 	bool unproject_to_mesh(const Eigen::Vector2f &pos, const Eigen::Matrix4f &model, const Eigen::Matrix4f &proj, const Eigen::Vector4f &viewport,
-		const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, Eigen::Vector3f &s, Eigen::Vector3f &dir, int &fid, Eigen::Vector3f &bc, double &t);
+		const Eigen::MatrixXd &V, const Eigen::MatrixXi &F, Eigen::Vector3f &s, Eigen::Vector3f &dir, int &fid, Eigen::Vector3f &bc, Eigen::Vector2d &t);
  //************************************
  // Method:    qrcode::unproject_onto_mesh
  // Returns:   bool
@@ -57,13 +57,8 @@ namespace qrcode {
  // @Param double & t
  //************************************
  bool unproject_onto_mesh(const Eigen::Vector2f& pos,const Eigen::Matrix4f& model,const Eigen::Matrix4f& proj,const Eigen::Vector4f& viewport,
-		const std::function<
-		bool(
-			const Eigen::Vector3f&,
-			const Eigen::Vector3f&,
-			igl::Hit  &)
-		> & shoot_ray,
-		Eigen::Vector3f &s,	Eigen::Vector3f &dir,int & fid,Eigen::Vector3f & bc,double &t);
+	 const std::function<bool(const Eigen::Vector3f&, const Eigen::Vector3f&, std::vector<igl::Hit>&)>& shoot_ray,
+		Eigen::Vector3f &s,	Eigen::Vector3f &dir,int & fid,Eigen::Vector3f & bc, Eigen::Vector2d &t);
 }
 
 #endif // !UNPROJECTTOMESH_H_

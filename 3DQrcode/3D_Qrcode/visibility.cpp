@@ -6,6 +6,8 @@
 #include "igl/Hit.h"
 #include <Eigen/core>
 #include <igl/per_face_normals.h>
+#include "visPolygon.h"
+#include <omp.h>
 bool qrcode::visibility(Engine * engine, Eigen::MatrixXf & Src, Eigen::MatrixXf & Dir, Eigen::MatrixXd & th, Eigen::MatrixXd & th_crv, Eigen::MatrixXd & BW, std::vector<Eigen::MatrixXd>& B_cnn,
 	Eigen::MatrixXd & V_fin, Eigen::MatrixXi & F_fin, Eigen::VectorXi & ufct, int v_num, int f_num, Eigen::MatrixXd & vis)
 {
@@ -253,7 +255,7 @@ bool qrcode::visibility(Engine * engine, Eigen::MatrixXd &V_pxl, Eigen::MatrixXf
 }
 
 bool qrcode::visibility(Engine *engine, Eigen::MatrixXd &V_pxl, Eigen::MatrixXf &Src, Eigen::MatrixXf &Dir, Eigen::MatrixXd &th, Eigen::MatrixXd &th_crv, Eigen::MatrixXd &BW, std::vector<Eigen::MatrixXi> &B_qr,
-	Eigen::Matrix4f &mode, double minZ, double t, Eigen::MatrixXd &box, std::vector<std::vector<Eigen::MatrixXd>>&B_md, Eigen::MatrixXd &V_fin, Eigen::MatrixXd &vis)
+	Eigen::Matrix4f &mode, double minZ, double t, Eigen::MatrixXd &box, std::vector<std::vector<Eigen::MatrixXd>>&B_md, std::vector<std::vector<Eigen::MatrixXd>>&B_mdl, Eigen::MatrixXd &vis)
 {
 	using namespace std;
 	using namespace Eigen;
@@ -265,12 +267,9 @@ bool qrcode::visibility(Engine *engine, Eigen::MatrixXd &V_pxl, Eigen::MatrixXf 
 
 	//radius and area of hemisphere
 	const double PI = 3.1415926;
-	double r = (V_fin.colwise().maxCoeff() - V_fin.colwise().minCoeff()).norm() * 2;
-	double A = 2 * PI*r*r;
 
 	//the ratio of visible area and hemisphere
 	double ratio;
-	Vector3d edge1, edge2;
 	vis.resize((BW.rows() - 1)*scale, (BW.cols() - 1)*scale);
 	vis.setConstant(0.5);
 	//Source and destination for each pixel
@@ -306,7 +305,6 @@ bool qrcode::visibility(Engine *engine, Eigen::MatrixXd &V_pxl, Eigen::MatrixXf 
 						dir << -((Dir.row(x*th.cols() + y) + Dir.row((x + 1)*th.cols() + y + 1)) / 2).transpose().cast<double>();
 						dir.normalize();
 						des << (V_pxl.row(x*th.cols() + y).transpose() + V_pxl.row((x + 1)*th.cols() + y + 1).transpose()) / 2;
-						v_cent << v_src + r*dir;
 						qrcode::rotMatrix(dir, axis, rot);
 						/*igl::matlab::mlsetmatrix(&engine, "src", SRC);
 						igl::matlab::mleval(&engine, "scatter(src(0),src(1),src(2))");
@@ -338,20 +336,51 @@ bool qrcode::visibility(Engine *engine, Eigen::MatrixXd &V_pxl, Eigen::MatrixXf 
 							//cout << area << endl;
 							/*double area = qrcode::qrArea(engine, V_qr, rot) / (4 * PI);*/
 							vis(x,y) = area;
-							//cout << area << endl;
+							cout << area << endl;
 							V_mdl.clear();
-						/*//To calculate the ratio of visibility
-						ratio = 0;
-						for (int k = 0; k < B.size(); k++) {
-							edge1 << V_bound.row(k%V_bound.rows()).transpose() - v_cent;
-							edge2 << v_cent - V_bound.row((k + 1) % V_bound.rows()).transpose();
-							ratio += (edge1.cross(edge2)).norm() / 2 / A;
+							V_flag.clear();
+						
+					}
+				}
+			}
+			else if ( BW(i, j) ==0) {
+
+				for (int m = 0; m < scale; m++) {
+					for (int n = 0; n < scale; n++) {
+						//for each pixel
+						int x = i*scale + m;
+						int y = j*scale + n;
+						//Shift 0.5 pixel at X and Y axis to centric of each pixel
+						v_src << (V_pxl.row(x*th.cols() + y).transpose() + V_pxl.row((x + 1)*th.cols() + y + 1).transpose()) / 2;
+						dir << -((Dir.row(x*th.cols() + y) + Dir.row((x + 1)*th.cols() + y + 1)) / 2).transpose().cast<double>();
+						dir.normalize();
+						des << (Src.row(x*th.cols() + y).transpose() + Src.row((x + 1)*th.cols() + y + 1).transpose()).cast<double>() / 2;
+						qrcode::rotMatrix(dir, axis, rot);
+						//to get qrcode bound verticals
+						MatrixXd V_qr1(4, 3);
+						V_qr1.row(0) << V_pxl.row(x*th.cols() + y);
+						V_qr1.row(1) << V_pxl.row(x*th.cols() + y+1);
+						V_qr1.row(2) << V_pxl.row((x+1)*th.cols() + y+1);
+						V_qr1.row(3) << V_pxl.row((x+1)*th.cols() + y);
+						V_qr1 = (V_qr1 - v_src.transpose().replicate(4, 1)).rowwise().normalized();
+						//cout << V_qr1 << endl;
+						//To get model bound verticals of 3D light region for each pixel
+						qrcode::lightRegion(engine, v_src, des, mode, minZ, t, box, B_md, V_md);
+						for (int k = 0; k < V_md.size(); k++) {
+							V_mdl.push_back((V_md[k][0] - (v_src.transpose().replicate(V_md[k][0].rows(), 1))).rowwise().normalized());
+							V_flag.push_back(V_md[k][1]);
+						//	cout << V_md[k][0] << endl;
 						}
-						V_bound.resize(0, 0);
-						if (ratio < 0.001 || ratio>1)
-							cout << BW(i, j) << "	" << ratio << endl;
-						else
-							vis(x, y) = ratio;*/
+						//cout << V_mdl.size() << endl;
+						double area = qrcode::multiIntersection(engine,V_qr1,V_mdl, V_flag, rot, Region) / (4 * PI);
+						//cout << area << endl;
+						/*double area = qrcode::qrArea(engine, V_qr, rot) / (4 * PI);*/
+						if(area<0.5&&area>0.0)
+							vis(x, y) = area;
+
+						cout << area << endl;
+						V_mdl.clear();
+						V_flag.clear();
 
 					}
 				}
@@ -361,5 +390,125 @@ bool qrcode::visibility(Engine *engine, Eigen::MatrixXd &V_pxl, Eigen::MatrixXf 
 	mw.save(vis, "Exp");
 	mw.write("Experiment.mat");
 	V_mdl.clear();
+	return true;
+}
+
+bool qrcode::visibility(Eigen::MatrixXd & V_pxl, Eigen::MatrixXf & Src, Eigen::MatrixXf & Dir, Eigen::MatrixXd & th, Eigen::MatrixXd & th_crv, Eigen::MatrixXd & BW, std::vector<Eigen::MatrixXi>& B_qr,
+	Eigen::Matrix4f & mode, double minZ, double t, Eigen::MatrixXd & box, std::vector<std::vector<Eigen::MatrixXd>>& B_md, std::vector<std::vector<Eigen::MatrixXd>>&B_mdl, Eigen::MatrixXd & vis)
+{
+	using namespace std;
+	using namespace Eigen;
+	igl::matlab::MatlabWorkspace mw;
+
+	// Spherical coordinate system
+	#define PI 3.1415926535898
+	namespace bg = boost::geometry;
+	typedef boost::geometry::model::d2::point_xy<double> Point_c;
+	typedef	bg::model::point<double, 2, bg::cs::spherical_equatorial<bg::radian>> Point_s;
+	typedef bg::model::polygon<Point_c> Polygon;
+	typedef bg::model::polygon<Point_s> Polygon_s;
+	//scale of a module
+	int scale = th.rows() / BW.rows();
+	int col = th.cols();
+	//the ratio of visible area and hemisphere
+	double ratio;
+	vis.resize((BW.rows() - 1)*scale, (BW.cols() - 1)*scale);
+	vis.setConstant(0.5);
+	Eigen::VectorXd axis(3);
+	axis << 0, 0, 1;
+	#pragma omp parallel for schedule(dynamic)
+	for (int i = 0; i < (BW.rows() - 1)*scale*(BW.cols() - 1)*scale; i++) {
+		int x = i / ((BW.cols() - 1)*scale);
+		int y = i % ((BW.cols() - 1)*scale);
+		int bx = x / scale;
+		int by = y / scale;
+		cout << bx << ":" << by <<":"<<BW(bx,by)<<endl;
+		//Source and destination for each pixel
+		VectorXd v_src(3), dir(3),des(3);
+		MatrixXd rot;
+		MatrixXd Bound;
+		Polygon_c pr,pt,p;
+		deque<Polygon> output;
+		//Shift 0.5 pixel at X and Y axis to centric of each pixel
+		
+		dir << -((Dir.row(x*th.cols() + y) + Dir.row((x + 1)*th.cols() + y + 1)) / 2).transpose().cast<double>();
+		dir.normalize();
+		qrcode::rotMatrix(dir, axis, rot);
+		if (BW(bx, by) > 0) { 
+			v_src << ((Src.row(x*th.cols() + y).cast<double>() + Dir.row(x*th.cols() + y).cast<double>()*(th(x, y) + th_crv(x, y)) +
+				Src.row((x + 1)*th.cols() + y + 1).cast<double>() + Dir.row((x + 1)*th.cols() + y + 1).cast<double>()*(th(x + 1, y + 1) + th_crv(x + 1, y + 1))
+				) / 2).transpose();
+			des << (V_pxl.row(x*th.cols() + y).transpose() + V_pxl.row((x + 1)*th.cols() + y + 1).transpose()) / 2;
+			qrcode::qrPolygon(Eigen::RowVector2d(x + 0.5, y + 0.5), B_qr[BW(bx, by) - 1], scale, BW.cols(), V_pxl, v_src, rot, pr);
+			//cout << bg::wkt(pr) << endl;
+			//cout << bg::area(pr) << endl;
+			pt = pr;
+			qrcode::slPolygon(v_src, des, mode, minZ, t, 0, box, B_md[0],rot,p);
+			//cout << bg::wkt(p) << endl;
+			//cout << bg::area(p) << endl;
+			bg::intersection(pr, p, output);
+			if (output.size() != 0) {
+				pt.clear();
+				pt = output[0];
+			}
+
+			for (int j = 1; j < B_md.size(); j++) {
+				output.clear();
+				p.clear();
+				pr.clear();
+				pr = pt;
+				qrcode::slPolygon(v_src, des, mode, minZ, t, j, box, B_md[j], rot, p);
+				//cout << bg::wkt(p) << endl;
+				//cout << bg::area(p) << endl;
+				bg::intersection(pr, p, output);
+				if (output.size() != 0)
+				{
+					pt.clear();
+					pt = output[0];
+				}
+			}
+		}
+		else {
+			v_src << (V_pxl.row(x*th.cols() + y).transpose() + V_pxl.row((x + 1)*th.cols() + y + 1).transpose()) / 2;
+			des<<((Src.row(x*th.cols() + y) + Src.row((x + 1)*th.cols() + y + 1)) / 2).transpose().cast<double>();
+			qrcode::slPolygon(v_src, des, mode, minZ, t, 0, box, B_mdl[0], rot, pr);
+			//cout << bg::wkt(pr) << endl;
+			//cout << bg::area(pr) << endl;
+			pt = pr;
+
+			for (int j = 1; j < B_md.size(); j++) {
+				output.clear();
+				p.clear();
+				pr.clear();
+				pr = pt;
+				qrcode::slPolygon(v_src, des, mode, minZ, t, j, box, B_mdl[j], rot, p);
+				//cout << bg::wkt(p) << endl;
+				//cout << bg::area(p) << endl;
+				bg::intersection(pr, p, output);
+				if (output.size() != 0)
+				{
+					pt.clear();
+					pt = output[0];
+				}
+			}
+		}
+		
+		output.clear();
+		p.clear();
+		pr.clear();
+		pr = pt;
+		//Cartesian coordinates
+		Polygon_s s;
+		Bound.resize(pt.outer().size(), 3);
+		for (int j = 0; j < pt.outer().size(); j++) {
+			Bound.row(j) << cos(pt.outer()[j].y())*cos(pt.outer()[j].x()), cos(pt.outer()[j].y())*sin(pt.outer()[j].x()), sin(pt.outer()[j].y());
+			s.outer().push_back(Point_s(pt.outer()[j].x(), pt.outer()[j].y()));
+		}
+		//cout << bg::wkt(s) << endl;
+		double area= bg::area(s)/(4*PI);
+		vis(x, y) = area;
+		cout << area << endl;
+
+	}
 	return true;
 }

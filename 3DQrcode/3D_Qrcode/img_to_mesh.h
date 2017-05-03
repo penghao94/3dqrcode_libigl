@@ -103,7 +103,7 @@ namespace qrcode {
 		Eigen::MatrixXd &_H,
 		Eigen::MatrixXf &Src,
 		Eigen::MatrixXf &Dir,
-		Eigen::MatrixXd &L,
+		std::vector<Eigen::MatrixXd> &L,
 		Eigen::MatrixXd &V_pxl
 	);
 	//************************************

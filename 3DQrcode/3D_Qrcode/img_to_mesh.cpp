@@ -84,7 +84,7 @@ bool qrcode::img_to_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, Eige
 	return true;
 }
 
-int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::MatrixXd & D, int scale,int acc, Eigen::MatrixXi & fid, Eigen::MatrixXd & _V, Eigen::MatrixXi & _F, Eigen::MatrixXd & _C, Eigen::MatrixXi & _E, Eigen::MatrixXd & _H, Eigen::MatrixXf &Src,Eigen::MatrixXf &Dir,Eigen::MatrixXd &L,Eigen::MatrixXd &V_pxl)
+int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::MatrixXd & D, int scale,int acc, Eigen::MatrixXi & fid, Eigen::MatrixXd & _V, Eigen::MatrixXi & _F, Eigen::MatrixXd & _C, Eigen::MatrixXi & _E, Eigen::MatrixXd & _H, Eigen::MatrixXf &Src,Eigen::MatrixXf &Dir,std::vector<Eigen::MatrixXd> &L,Eigen::MatrixXd &V_pxl)
 {
 	using namespace std;
 	Eigen::MatrixXd r, c, wht_V,blk_V,wht_C,blk_C,adj_C;
@@ -93,7 +93,8 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 	Eigen::Vector3d v0, v1, v2, _v;
 	double CENT_X = viewer.core.viewport(2) / 2;
 	double CENT_Y = viewer.core.viewport(3) / 2;
-	double t;
+	Eigen::Vector2d t;
+	L.resize(2);
 	int w_blk = 0;//count of white block
 	int b_blk = 0;//count of black block
 	int sep_pnt = 0;//count of separate point
@@ -108,7 +109,8 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 	Src.resize(row*col, 3);
 	Dir.resize(row*col, 3);
 	fid.resize(row+2*mul, col+2*mul);
-	L.resize(row, col);
+	L[0].resize(row, col);
+	L[1].resize(row, col);
 	_E.resize(4 * (D.rows() - 1), 2);
 	_H.resize(1, 3);
 	S.resize(D.rows()*D.cols(),1);
@@ -133,7 +135,8 @@ int qrcode::img_to_sep_mesh(igl::viewer::Viewer & viewer, Eigen::MatrixXd & V, E
 				V_pxl.row(i*row + j) << _v(0), _v(1), _v(2);
 				Src.row(i*row + j) << s.transpose();
 				Dir.row(i*row + j) << dir.transpose();
-				L(i, j) = t;
+				L[0](i, j) = t(0);
+				L[1](i, j) = t(1);
 				if (i%mul == 0 && j%mul == 0) {
 					int m = i / mul;
 					int n = j / mul;

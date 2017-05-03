@@ -67,12 +67,12 @@ int main(int argc, char *argv[])
 	Eigen::MatrixXi E_qr;
 	Eigen::MatrixXd H_qr;
 	Eigen::MatrixXf Src, Dir;		//source direction of uncarved vertex
-	Eigen::MatrixXd th;				//than of uncarved vertex
+	std::vector<Eigen::MatrixXd> th;				//than of uncarved vertex
 	Eigen::MatrixXd V_pxl;			
 	int wht_num;					//number of white block
 	//Parameters of carve mesh down
 	int mul;
-	double depth=0;
+	double depth=0.05;
 	Eigen::MatrixXd th_crv;         //carved than
 	Eigen::MatrixXd V_qr; 
 	Eigen::MatrixXd T;
@@ -90,6 +90,7 @@ int main(int argc, char *argv[])
 	//Parameters of calculate area
 	//Output of bwlabel
 	Eigen::MatrixXd BW;
+
 	//Output of bwlindex
 	vector<Eigen::MatrixXd> B_cnn;
 	vector<Eigen::MatrixXi> B_cxx;
@@ -98,6 +99,7 @@ int main(int argc, char *argv[])
 	double minZ, t;
 	Eigen::MatrixXd Box;
 	vector<vector<Eigen::MatrixXd>> B_mdl;
+	vector<vector<Eigen::MatrixXd>> B_md;
 	//Output of upperpoint
 	Eigen::VectorXi upnt;
 	Eigen::VectorXi ufct;
@@ -170,6 +172,7 @@ int main(int argc, char *argv[])
 			//th_crv = (T.array()*(0.25 / 8 / abs(Dir(int(Dir.rows() / 2), 2)))).matrix();
 			
 			cout << "Image to mesh time = " << timer.getElapsedTime() << endl;
+			cout << th[0] << th[1] << endl;
 		});
 		viewer.ngui->addButton("Display", [&]() {
 			viewer.data.clear();
@@ -183,12 +186,12 @@ int main(int argc, char *argv[])
 			
 		});
 		viewer.ngui->addButton("Carved Model", [&]() {
-			th_crv.resize(th.rows(), th.cols());
+			th_crv.resize(th[0].rows(), th[0].cols());
 			th_crv.setConstant(depth / abs(Dir(int(Dir.rows() / 2), 2))); 
 			timer.start();
 			viewer.data.clear();
 			mul = scale*acc;
-			qrcode::curve_down(V_uncrv, D, Src, Dir, th, wht_num,mul,th_crv, V_qr);
+			qrcode::curve_down(V_uncrv, D, Src, Dir, th[0], wht_num,mul,th_crv, V_qr);
 			qrcode::cutMesh(V, F, F_hit, V_rest, F_rest, E_rest);
 			viewer.data.set_mesh(V_rest, F_rest);
 			viewer.data.set_face_based(true);
@@ -215,7 +218,6 @@ int main(int argc, char *argv[])
 			qrcode::cut_plane(engine,V_fin, F_fin, mode,10, B_mdl,minZ,t,Box);
 			cout << "Model vertex: " << V_fin.rows() << endl << "Model facet: " << F_fin.rows() << endl;
 			cout << "Merge time = " << timer.getElapsedTime() << endl;
-			
 			/*for (int i = 0; i < B_mdl.size(); i++) {
 				cout << i << endl; 
 				for (int j = 0; j < B_mdl[i][0].rows(); j++) {
@@ -234,11 +236,13 @@ int main(int argc, char *argv[])
 			timer.start();
 			qrcode::bwlabel(engine,D, 4, BW);
 			qrcode::bwindex(BW,B_cxx);
+
 			//qrcode::bwindex(engine,BW, scale,B_cii);
 			//qrcode::upperpoint(V_fin, F_fin, mode, V_rest.rows(), wht_num, F_rest.rows(), 2 * (wht_num - D.rows() - D.cols() + 1), upnt, ufct,v_num,f_num);
 			//qrcode::visibility(engine,V_pxl, Src, Dir, th, th_crv, BW, B_cxx, V_fin, F_fin, ufct, v_num, f_num, Vis);
 			//cout << Vis << endl;
-			qrcode::visibility(engine, V_pxl, Src, Dir, th, th_crv, BW, B_cxx, mode, minZ, t,Box, B_mdl, V_fin, Vis);
+			qrcode::visibility(engine,V_pxl, Src, Dir, th[0], th_crv, BW, B_cxx, mode, minZ, t,Box, B_mdl, B_md, Vis);
+			//qrcode::visibility( V_pxl, Src, Dir, th, th_crv, BW, B_cxx, mode, minZ, t, Box, B_mdl,B_md, Vis);
 			cout << "Area time = " << timer.getElapsedTime() << endl;
 		});
 		

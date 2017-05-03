@@ -1,5 +1,6 @@
 #include "2D_visible.h"
 #include <Eigen/dense>
+
 // Define the used kernel and arrangement  
 typedef CGAL::Exact_predicates_exact_constructions_kernel       Kernel;
 typedef Kernel::FT												FT; 
@@ -53,29 +54,33 @@ bool qrcode::lightRegion(Eigen::RowVector2d & query_point, Eigen::MatrixXi & E, 
 	return true;
 }
 
-bool qrcode::lightRegion(Engine *engine, Eigen::VectorXd &src, Eigen::VectorXd &des, Eigen::Matrix4f & mode, double minZ, double t, Eigen::MatrixXd &Box, std::vector<std::vector<Eigen::MatrixXd>>& B, std::vector<std::vector<Eigen::MatrixXd>>& R)
+bool qrcode::lightRegion(Engine *engine, Eigen::VectorXd &src, Eigen::VectorXd &des, Eigen::Matrix4f & mode, double minZ, double t, Eigen::MatrixXd &Box, 
+	std::vector<std::vector<Eigen::MatrixXd>>& B, std::vector<std::vector<Eigen::MatrixXd>>& R)
 {
 	using namespace std;
 	R.clear();
-	Eigen::VectorXd S(4),D(4);
-	vector<Eigen::Vector4d> vertex;
-	vector<Eigen::MatrixXd> T;
-	vector<int> flag;
+	R.resize(B.size());
+	Eigen::VectorXd S(4),D(4);	
 	Eigen::Matrix4f model;
-
 	model = mode.inverse().eval();
-	//model=model.inverse().eval();
+
 	//Defining query point 
 	S << src(0), src(1), src(2), 1;
 	S = (mode*S.cast<float>()).cast<double>();
 	D << des(0), des(1), des(2), 1;
 	D= (mode*D.cast<float>()).cast<double>();
-//	int level = ceil((S(2) - minZ) / t);
-	vector<Segment_2> segments;
-	Arrangement_2 env;
-	Arrangement_2 output_arr;
+
+
+	#pragma omp parallel for schedule(dynamic)
 	for (int i = 0; i < B.size(); i++) {
-		//cout << i << endl;
+		vector<Eigen::Vector4d> vertex;
+		vector<Eigen::MatrixXd> T;
+		vector<int> flag;
+
+		vector<Segment_2> segments;
+		Arrangement_2 env;
+		Arrangement_2 output_arr;
+
 		double r = (minZ + i*t - S(2)) / (D(2)-S(2));
 		Point_2 query(S(0) + r*(D(0) - S(0)), S(1) + r*(D(1) - S(1)));
 		//Eigen::MatrixXd Q(1, 3);
@@ -85,6 +90,7 @@ bool qrcode::lightRegion(Engine *engine, Eigen::VectorXd &src, Eigen::VectorXd &
 		output_arr.clear();
 		//igl::matlab::mleval(&engine, "figure");
 		//cout << B[i][0] << endl;
+		#pragma omp parallel for schedule(dynamic)
 		for (int j = 0; j < B[i][0].rows(); j++) {
 			//Defining the input geometry
 			Point_2 s(B[i][0](j, 0), B[i][0](j, 1));
@@ -128,32 +134,35 @@ bool qrcode::lightRegion(Engine *engine, Eigen::VectorXd &src, Eigen::VectorXd &
 		else {
 			flag.push_back(0);
 		}
-		vertex.push_back(Eigen::Vector4d(CGAL::to_double(curr->source()->point().x()), CGAL::to_double(curr->source()->point().y()),minZ+t*(i+1),1));
+		vertex.push_back(Eigen::Vector4d(CGAL::to_double(curr->source()->point().x()), CGAL::to_double(curr->source()->point().y()),minZ+t*i,1));
 		while (++curr != fh->outer_ccb()) {
-		/*	if (abs(CGAL::to_double(curr->source()->point().x()) -x)<0.000001&&abs(CGAL::to_double(curr->source()->point().y()) - y)<0.000001) {
+			/*if (abs(CGAL::to_double(curr->source()->point().x()) -x)<0.0001&&abs(CGAL::to_double(curr->source()->point().y()) - y)<0.0001) {
 				if (!vertex.empty()) {
 					vertex.pop_back();
 					flag.pop_back();
 				}
 			}*/
-			//else
-			Segment_2 check(curr->source()->point(), curr->target()->point());
-			if (!check.is_degenerate()) {
-				x = CGAL::to_double(curr->source()->point().x());
-				y = CGAL::to_double(curr->source()->point().y());
-				if (x == Box(0, 0) || x == Box(0, 1) || y == Box(0, 1) || y == Box(1, 1)) {
-					flag.push_back(1);
-				}
-				else {
-					flag.push_back(0);
-				}
-				vertex.push_back(Eigen::Vector4d(CGAL::to_double(curr->source()->point().x()), CGAL::to_double(curr->source()->point().y()), minZ + t*i, 1));
+		//	else {
+				Segment_2 check(curr->source()->point(), curr->target()->point());
+				if (!check.is_degenerate()) {
+					x = CGAL::to_double(curr->source()->point().x());
+					y = CGAL::to_double(curr->source()->point().y());
+					if (x == Box(0, 0) || x == Box(0, 1) || y == Box(0, 1) || y == Box(1, 1)) {
+						flag.push_back(1);
+					}
+					else {
+						flag.push_back(0);
+					}
+					vertex.push_back(Eigen::Vector4d(CGAL::to_double(curr->source()->point().x()), CGAL::to_double(curr->source()->point().y()), minZ + t*i, 1));
 			}
+			
+			//}
 			
 		}
 		//}
 		Eigen::MatrixXd E(vertex.size(), 4);
 		Eigen::MatrixXd G(vertex.size(), 1);
+		#pragma omp parallel for schedule(dynamic)
 		for(int j=0;j<vertex.size();j++){
 			E.row(j) << vertex[j](0), vertex[j](1), vertex[j](2), vertex[j](3);
 			G.row(j) << flag[j];
@@ -162,11 +171,12 @@ bool qrcode::lightRegion(Engine *engine, Eigen::VectorXd &src, Eigen::VectorXd &
 		igl::matlab::mlsetmatrix(&engine, "temp", E);
 		igl::matlab::mleval(&engine, "plot(temp(:,1),temp(:,2))");	
 		igl::matlab::mleval(&engine, "hold on");*/
-		//cout << E << endl;
+
 		E = (model*(E.transpose().cast<float>())).transpose().cast<double>().block(0, 0, E.rows(), 3);
-		T.push_back(E);
-		T.push_back(G);
-		R.push_back(T);
+		T.resize(2);
+		T[0]=E;
+		T[1]=G;
+		R[i]=T;
 		vertex.clear();
 		flag.clear();
 		T.clear();
