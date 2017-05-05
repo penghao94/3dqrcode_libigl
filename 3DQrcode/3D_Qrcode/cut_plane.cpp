@@ -127,7 +127,6 @@ bool qrcode::cut_plane(Engine *engine, Eigen::MatrixXd & V, Eigen::MatrixXi & F,
 		B.push_back(temp);
 		temp.clear();
 	}
-	cout << B.size() << endl;
 	_V.resize(0, 0);
 	_F.resize(0, 0);
 	m_polyhedron->clear();

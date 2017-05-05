@@ -75,6 +75,7 @@ int qrcode::readData(const std::string file, Eigen::MatrixXd & D)
 	else {
 		fscanf(in, "%d %d %d %d\n", &errColLvl, &mask, &border,&scale);
 		fscanf(in, "%s\n", &text);
+		fclose(in);
 		std::string str = text;
 		switch (errColLvl)
 		{

@@ -22,7 +22,7 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 	typedef bg::model::polygon<Point_s> Polygon_s;
 	Polygon t,r;
 	double x1, y1, z1,w1;
-	
+	double threshold = 0;
 	std::deque<Polygon> output;
 	std::vector<Polygon> polygons;
 
@@ -267,6 +267,10 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 	/*
 	Maybe there still exists bugs, but I have adapted a compromise plan
 	*/
+	/*if (bg::area(polygons[0]) > bg::area(polygons[polygons.size() - 1]))
+		threshold = bg::area(polygons[polygons.size() - 1])*0.2;
+	else
+		threshold = bg::area(polygons[0])*0.2;*/
  	for (int i = 0; i < polygons.size() - 1; i++) {
 		r.clear();
 		if (i == 0) {
@@ -280,7 +284,7 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 		}
 		output.clear();
 		bg::intersection(r, polygons[i], output);
-		if (output.size() != 0) {
+		if (output.size() != 0/*&&bg::area(output[0])>threshold*/) {
 			t.clear();
 			t = output[0];
 		}
@@ -294,7 +298,18 @@ double qrcode::multiIntersection(Engine *engine, Eigen::MatrixXd & V_qr, std::ve
 		dir.row(i) << cos(t.outer()[i].y())*cos(t.outer()[i].x()), cos(t.outer()[i].y())*sin(t.outer()[i].x()), sin(t.outer()[i].y());
 		s.outer().push_back(Point_s(t.outer()[i].x(), t.outer()[i].y()));
 	}
-	return bg::area(s);
+	if (bg::area(s) < 0.005) {
+		
+		t.clear();
+		t = polygons[0];
+		s.clear();
+		dir.resize(t.outer().size(), 3);
+		for (int i = 0; i < t.outer().size(); i++) {
+			dir.row(i) << cos(t.outer()[i].y())*cos(t.outer()[i].x()), cos(t.outer()[i].y())*sin(t.outer()[i].x()), sin(t.outer()[i].y());
+			s.outer().push_back(Point_s(t.outer()[i].x(), t.outer()[i].y()));
+		}
+	}
+		return bg::area(s);
 }
 
 double qrcode::multiIntersection(Engine * engine, std::vector<Eigen::MatrixXd>& V_md, std::vector<Eigen::MatrixXd>& V_flag, Eigen::MatrixXd & rot, Eigen::MatrixXd & dir)
@@ -447,6 +462,8 @@ double qrcode::multiIntersection(Engine * engine, std::vector<Eigen::MatrixXd>& 
 	/*
 	Maybe there still exists bugs, but I have adapted a compromise plan
 	*/
+	
+
 	for (int i = 0; i < polygons.size() - 1; i++) {
 		r.clear();
 		if (i == 0) {

@@ -27,6 +27,7 @@ Self-definition function
 #include "gaussianKernel.h"
 #include "cut_plane.h"
 #include "sphericalPolygen.h"
+#include "optimization.h"
 /*
 Calling function
 */
@@ -73,7 +74,7 @@ int main(int argc, char *argv[])
 	//Parameters of carve mesh down
 	int mul;
 	double depth=0.05;
-	Eigen::MatrixXd th_crv;         //carved than
+	//Eigen::MatrixXd th_crv;         //carved than
 	Eigen::MatrixXd V_qr; 
 	Eigen::MatrixXd T;
 	//Parameters of cut mesh
@@ -91,7 +92,7 @@ int main(int argc, char *argv[])
 	//Output of bwlabel
 	Eigen::MatrixXd BW;
 
-	//Output of bwlindex
+	//Output of bwindex
 	vector<Eigen::MatrixXd> B_cnn;
 	vector<Eigen::MatrixXi> B_cxx;
 	vector<Eigen::MatrixXi> B_cii;
@@ -172,11 +173,12 @@ int main(int argc, char *argv[])
 			//th_crv = (T.array()*(0.25 / 8 / abs(Dir(int(Dir.rows() / 2), 2)))).matrix();
 			
 			cout << "Image to mesh time = " << timer.getElapsedTime() << endl;
-			cout << th[0] << th[1] << endl;
 		});
 		viewer.ngui->addButton("Display", [&]() {
 			viewer.data.clear();
 			qrcode::display(V, F, C, F_hit, V_uncrv, F_qr, C_qr, V_fin, F_fin, C_fin);
+			qrcode::cutMesh(V, F, F_hit, V_rest, F_rest, E_rest);
+			mul = scale*acc;
 			viewer.data.set_mesh(V_fin, F_fin);
 			viewer.data.set_colors(C_fin);
 			V_fin.resize(0, 0);
@@ -185,14 +187,13 @@ int main(int argc, char *argv[])
 			viewer.data.set_face_based(true);
 			
 		});
-		viewer.ngui->addButton("Carved Model", [&]() {
-			th_crv.resize(th[0].rows(), th[0].cols());
-			th_crv.setConstant(depth / abs(Dir(int(Dir.rows() / 2), 2))); 
+		/*viewer.ngui->addButton("Carved Model", [&]() {
+			//th_crv.resize(th[0].rows(), th[0].cols());
+		//	th_crv.setConstant(depth / abs(Dir(int(Dir.rows() / 2), 2))); 
 			timer.start();
 			viewer.data.clear();
-			mul = scale*acc;
-			qrcode::curve_down(V_uncrv, D, Src, Dir, th[0], wht_num,mul,th_crv, V_qr);
-			qrcode::cutMesh(V, F, F_hit, V_rest, F_rest, E_rest);
+			
+			//qrcode::curve_down(V_uncrv, D, Src, Dir, th[0], wht_num,mul,th_crv, V_qr);
 			viewer.data.set_mesh(V_rest, F_rest);
 			viewer.data.set_face_based(true);
 			cout << "Carve model time = " << timer.getElapsedTime() << endl;
@@ -202,7 +203,6 @@ int main(int argc, char *argv[])
 			viewer.data.clear();
 			timer.start();
 			qrcode::tranglate(V_rest, E_rest, V_qr, E_qr, H_qr,mode, F_tri);
-
 			V_fin.resize(V_rest.rows() + V_qr.rows(), 3);
 			F_fin.resize(F_rest.rows() + F_qr.rows() + F_tri.rows(), 3);
 			C_fin.resize(F_rest.rows() + F_qr.rows() + F_tri.rows(), 3);
@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
 			qrcode::cut_plane(engine,V_fin, F_fin, mode,10, B_mdl,minZ,t,Box);
 			cout << "Model vertex: " << V_fin.rows() << endl << "Model facet: " << F_fin.rows() << endl;
 			cout << "Merge time = " << timer.getElapsedTime() << endl;
-			/*for (int i = 0; i < B_mdl.size(); i++) {
+			/ *for (int i = 0; i < B_mdl.size(); i++) {
 				cout << i << endl; 
 				for (int j = 0; j < B_mdl[i][0].rows(); j++) {
 					Eigen::MatrixXd Eg(2, 3);
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 					igl::matlab::mleval(&engine, "plot3(E(:,1),E(:,2),E(:,3))");
 					igl::matlab::mleval(&engine, "hold on");
 				}	
-			}*/
+			}* /
 			
 		});
 
@@ -241,10 +241,17 @@ int main(int argc, char *argv[])
 			//qrcode::upperpoint(V_fin, F_fin, mode, V_rest.rows(), wht_num, F_rest.rows(), 2 * (wht_num - D.rows() - D.cols() + 1), upnt, ufct,v_num,f_num);
 			//qrcode::visibility(engine,V_pxl, Src, Dir, th, th_crv, BW, B_cxx, V_fin, F_fin, ufct, v_num, f_num, Vis);
 			//cout << Vis << endl;
-			qrcode::visibility(engine,V_pxl, Src, Dir, th[0], th_crv, BW, B_cxx, mode, minZ, t,Box, B_mdl, B_md, Vis);
+		//	qrcode::visibility(engine,V_pxl, Src, Dir, th[0], th_crv, BW, B_cxx, mode, minZ, t,Box, B_mdl, Vis);
 			//qrcode::visibility( V_pxl, Src, Dir, th, th_crv, BW, B_cxx, mode, minZ, t, Box, B_mdl,B_md, Vis);
 			cout << "Area time = " << timer.getElapsedTime() << endl;
+		});*/
+		viewer.ngui->addButton("Optimization", [&]() {
+			viewer.data.clear();
+			qrcode::optimization(engine, D, mode, wht_num, mul, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th, V_pxl, V_rest, F_rest, E_rest, V_fin, F_fin);
+			viewer.data.set_face_based(true);
+			viewer.data.set_mesh(V_fin,F_fin);
 		});
+
 		
 		// Generate menu
 		viewer.screen->performLayout();

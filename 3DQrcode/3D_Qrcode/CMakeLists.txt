@@ -4,18 +4,12 @@ project(3D_Qrcode)
 include_directories("${PROJECT_SOURCE_DIR}/qrgen")
 add_subdirectory (qrgen) 
 set (QR_LIBS ${QR_LIBS} qrgen)
-#Add openmesh lib
-#include(ACGCommon)
-include_directories(${PROJECT_SOURCE_DIR}/OpenMesh/include)
-link_directories(${PROJECT_SOURCE_DIR}/OpenMesh/lib)
-set(OPENMESH_LIB ${OPENMESH_LIB} OpenMeshCored OpenMeshToolsd)
 # Add your project files
 FILE(GLOB SRCFILES *.cpp)
 FILE(GLOB HEADFILES *.h)
-set(OPENMESH_DEFINITIONS ${OPENMESH_DEFINITIONS} _USE_MATH_DEFINES OM_STATIC_BUILD)
 add_executable(${PROJECT_NAME}_bin ${SRCFILES} ${HEADFILES} ${LIBIGL_EXTRA_SOURCES})
 target_include_directories(${PROJECT_NAME}_bin PRIVATE ${LIBIGL_INCLUDE_DIRS})
-target_compile_definitions(${PROJECT_NAME}_bin PRIVATE ${LIBIGL_DEFINITIONS} ${OPENMESH_DEFINITIONS})
+target_compile_definitions(${PROJECT_NAME}_bin PRIVATE ${LIBIGL_DEFINITIONS})
 target_link_libraries(
  ${PROJECT_NAME}_bin
  ${LIBIGL_LIBRARIES} 
@@ -25,7 +19,6 @@ target_link_libraries(
  ${LIBIGL_TRIANGLE_EXTRA_LIBRARIES} 
  ${LIBIGL_PNG_EXTRA_LIBRARIES} 
  ${QR_LIBS}  
- ${OPENMESH_LIB}
  ${LIBIGL_CGAL_EXTRA_LIBRARIES}
  ${LIBIGL_EMBREE_EXTRA_LIBRARIES} 
  ${LIBIGL_MATLAB_EXTRA_LIBRARIES}
