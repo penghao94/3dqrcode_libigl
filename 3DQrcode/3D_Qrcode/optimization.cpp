@@ -19,6 +19,7 @@ bool qrcode::optimization(Engine * engine, Eigen::MatrixXd & D, Eigen::Matrix4f 
 	initiate condition
 	*/
 	Eigen::MatrixXd th_crv(D.rows(), D.cols());
+	Eigen::MatrixXd AG(D.rows() - 1, D.cols() - 1);
 	Eigen::MatrixXd V_qr;
 	//primary value of carve down
 	double step = 0;
@@ -81,8 +82,7 @@ bool qrcode::optimization(Engine * engine, Eigen::MatrixXd & D, Eigen::Matrix4f 
 	timer.start();
 	qrcode::visibility(engine, V_pxl, Src, Dir, th[0], th_crv, BW, B_cxx, mode, minZ, t, Box, B_mdl,  Vis);
 	qrcode:: vis2gray(engine, Vis, G);
-	mw.save(G, "G");
-	mw.save(th_crv, "th");
+	mw.save(Vis, "V");
 	mw.write("result/Experiment_0.mat");
 	igl::writeOBJ("result/Experiment_0.obj", V_fin, F_fin);
 	cout << "Optimization 0 time = " << timer.getElapsedTime() << endl;
@@ -114,10 +114,11 @@ bool qrcode::optimization(Engine * engine, Eigen::MatrixXd & D, Eigen::Matrix4f 
 	{
 		stop = true;
 		for (int i = 0; i < BW.rows() - 1; i++) {
-			for (int j = 0; j < BW.cols() - 1; j++) {
+			for (int j = 0; j < BW.cols() - 1; j++) {\
+				module = G.block(i*scale, j*scale, scale, scale).cast<double>();
+				AG(i, j) = (K.array()*module.array()).matrix().sum();
 				if (BW(i, j) != 0) {
-					module = G.block(i*scale, j*scale, scale, scale).cast<double>();
-					if ((K.array()*module.array()).matrix().sum() > threshold) {
+					if ( AG(i,j)> threshold) {
 						th_crv(i, j) = th_crv(i, j) + d;
 						stop = false;
 					}
@@ -138,14 +139,14 @@ bool qrcode::optimization(Engine * engine, Eigen::MatrixXd & D, Eigen::Matrix4f 
 			timer.start();
 			qrcode::visibility2(engine, V_pxl, Src, Dir, th[0], th_crv, BW, B_cxx, mode, minZ, t, Box, B_mdl, Vis);
 			qrcode::vis2gray(engine, Vis, G);
-			mw.save(G, "G");
-			mw.save(th_crv, "th");
-			mw.write("result/Experiment_" + to_string(count) + ".mat");
-			
 			igl::writeOBJ("result/Experiment_" + to_string(count) + ".obj", V_fin, F_fin);
 			cout << "Optimization"<< count <<" time= " << timer.getElapsedTime() << endl;
-			count++;
+			
 		}
+		mw.save(AG, "AG");
+		mw.save(Vis, "V");
+		mw.write("result/Experiment_" + to_string(count) + ".mat");
+		count++;
 	}
 	return true;
 }
