@@ -18,13 +18,34 @@ bool qrcode::test(Eigen::MatrixXd & D, Eigen::MatrixXd & T)
 		for (int j = 0; j < 8; j++) {
 			int CENT_X = i * 25 + 12;
 			int CENT_Y = j * 25 + 12;
-			for (int x = CENT_X - j-1; x < CENT_X + j+3; x++) {
-				for (int y = CENT_Y -j-1; y < CENT_Y + j +3; y++) {
-					if(x < CENT_X + j + 2&& y < CENT_Y + j + 2)
-						D(x, y) = 1.0;
-					T(x, y) = double(i+1);
+			if (j == 0) {
+				for (int x = CENT_X - j - 3; x < CENT_X + j +5; x++) {
+					for (int y = CENT_Y - j - 3; y < CENT_Y + j + 5; y++) {
+						if (x < CENT_X + j + 4 && y < CENT_Y + j + 4)
+							D(x, y) = 1.0;
+						T(x, y) = 8+(i+1)*0.4;
+					}
 				}
 			}
+			if (j > 0 && j < 7) {
+				for (int x = CENT_X - j - 2; x < CENT_X + j + 4; x++) {
+					for (int y = CENT_Y - j - 2; y < CENT_Y + j + 4; y++) {
+						if (x < CENT_X + j + 3 && y < CENT_Y + j + 3)
+							D(x, y) = 1.0;
+						T(x, y) = double(i + 1);
+					}
+				}
+			}
+			if (j == 7) {
+				for (int x = CENT_X - j - 1; x < CENT_X + j + 3; x++) {
+					for (int y = CENT_Y - j - 1; y < CENT_Y + j + 3; y++) {
+						if (x < CENT_X + j + 2 && y < CENT_Y + j + 2)
+							D(x, y) = 1.0;
+						T(x, y) = 0.125*(i+1);
+					}
+				}
+			}
+			
 
 		}
 	}

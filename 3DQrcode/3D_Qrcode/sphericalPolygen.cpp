@@ -569,10 +569,11 @@ void qrcode::rotMatrix(Eigen::VectorXd & before, Eigen::VectorXd & after, Eigen:
 	using namespace std;
 	Eigen::Vector3d a, b,c;
 	a << after(0), after(1), after(2);
-	b << before(0), before(1), before(2);
-	c << after(0), after(1), after(2);
-	c=c.cross(b); 
-	c = -c / c.norm();
+	b =before;
+	c =after;
+	c=c.cross(b);
+	if(c!=Eigen::Vector3d(0,0,0))
+		c = -c / c.norm();
 	double angle = acos(a.dot(b));
 	Eigen::MatrixXd I(3, 3),K(3,3);
 	I.setIdentity();

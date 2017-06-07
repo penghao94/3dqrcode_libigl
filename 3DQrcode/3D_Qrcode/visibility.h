@@ -18,7 +18,12 @@
 namespace qrcode {
 	bool visibility(Engine *engine,Eigen::MatrixXd &V_pxl,Eigen::MatrixXf &Src,Eigen::MatrixXf &Dir,Eigen::MatrixXd &th,Eigen::MatrixXd &th_crv,Eigen::MatrixXd &BW,std::vector<Eigen::MatrixXi> &B_qr,
 		Eigen::Matrix4f &mode,double minZ,double t,Eigen::MatrixXd &box,std::vector<std::vector<Eigen::MatrixXd>>&B_md, Eigen::MatrixXd &vis);
+	bool visibility_t(Engine *engine, Eigen::MatrixXd &V_pxl, Eigen::MatrixXf &Src, Eigen::MatrixXf &Dir, Eigen::MatrixXd &th, Eigen::MatrixXd &th_crv, Eigen::MatrixXd &BW, std::vector<Eigen::MatrixXi> &B_qr,
+		Eigen::Matrix4f &mode, double minZ, double t, Eigen::MatrixXd &box, std::vector<std::vector<Eigen::MatrixXd>>&B_md, Eigen::MatrixXd &vis);
 	bool visibility2(Engine *engine, Eigen::MatrixXd &V_pxl, Eigen::MatrixXf &Src, Eigen::MatrixXf &Dir, Eigen::MatrixXd &th, Eigen::MatrixXd &th_crv, Eigen::MatrixXd &BW, std::vector<Eigen::MatrixXi> &B_qr,
+		Eigen::Matrix4f &mode, double minZ, double t, Eigen::MatrixXd &box, std::vector<std::vector<Eigen::MatrixXd>>&B_md, Eigen::MatrixXd &vis);
+	bool visibility(Engine *engine, Eigen::MatrixXd &V_pxl, Eigen::MatrixXf &Src, Eigen::MatrixXf &Dir, Eigen::MatrixXd &th, Eigen::MatrixXd &th_crv,
+		Eigen::MatrixXd &BW, std::vector<Eigen::MatrixXi> &B_qr, Eigen::MatrixXd & Vs, std::vector<Eigen::MatrixXi> & Fs,Eigen::MatrixXd &V_fin, std::vector<Eigen::MatrixXi> &S,
 		Eigen::Matrix4f &mode, double minZ, double t, Eigen::MatrixXd &box, std::vector<std::vector<Eigen::MatrixXd>>&B_md, Eigen::MatrixXd &vis);
 }
 
