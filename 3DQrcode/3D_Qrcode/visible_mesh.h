@@ -15,6 +15,6 @@
 #include <vector>
 #include "mesh.h"
 namespace qrcode {
-	std::vector<Mesh> visible_mesh(Eigen::MatrixXd & BW,  std::vector<Eigen::MatrixXi> &B_qr, Eigen::MatrixXd &V_pxl, int scale);
+	std::vector<Mesh> visible_mesh(Eigen::MatrixXd & BW,  std::vector<Eigen::MatrixXi> &B_qr, Eigen::MatrixXd &V_pxl);
 }
 #endif // !VISIBLEMESH_H

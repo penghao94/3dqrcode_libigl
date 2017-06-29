@@ -11,28 +11,25 @@
 /*
 Self-definition function 
 */
-#include "loadMesh.h"
-#include "SaveMesh.h"
-#include "readData.h"
+#include "basic\loadMesh.h"
+#include "basic\Savemesh.h"
+#include "basic\readData.h"
+#include "basic\printPNG.h"
+#include "qrcodeGenerator.h"
 #include "img_to_mesh.h"
 #include "cutMesh.h"
 #include "trianglate.h"
-#include "qrcodeGenerator.h"
 #include "curve_down.h"
-#include "printPNG.h"
 #include "display.h"
 #include "test.h"
 #include "bwlabel.h"
-#include "visibility.h"
-#include "gaussianKernel.h"
-#include "cut_plane.h"
-#include "sphericalPolygen.h"
-#include "optimization.h"
-#include "subdivision.h"
 #include "mesh.h"
 #include "visible_mesh.h"
 #include "pre_pixel_normal.h"
 #include "ambient_occlusion.h"
+#include "illuminate_map.h"
+#include "optimization.h"
+#include "watermark.h"
 /*
 Calling function
 */
@@ -46,6 +43,8 @@ Calling function
 #include <igl/matlab/matlabinterface.h>
 #include <igl/matlab/MatlabWorkspace.h>
 #include <igl/unique.h>
+#include <igl/jet.h>
+#include <igl/png/writePNG.h>
 int main(int argc, char *argv[])
 {
 	// Initiate viewer, timer and setting 
@@ -64,6 +63,7 @@ int main(int argc, char *argv[])
 	Eigen::MatrixXi F;
 	Eigen::MatrixXd C;
 	int scale = 0;
+	int num = 0;
 	Eigen::MatrixXd D;
 	Eigen::MatrixXi D_img;
 	//Parameters of qrcode image to mesh
@@ -113,6 +113,7 @@ int main(int argc, char *argv[])
 	Eigen::VectorXi ufct;
 	int v_num;
 	int f_num;
+	int is_white=0;
 	//parameter of subdivision
 	Eigen::MatrixXd Vs;
 	std::vector<Eigen::MatrixXi> Fs;
@@ -120,21 +121,17 @@ int main(int argc, char *argv[])
 	//Output of visibility
 	Eigen::MatrixXd Vis;
 	
-	D.resize(7, 7);
+	/*D.resize(7, 7);
 	D << 0, 0, 0, 0, 0, 0, 0,
 		0, 1, 1, 1, 1, 0, 0,
 		0, 1, 1, 1, 1, 0, 0,
 		0, 1, 1, 1, 1, 0, 0,
 		0, 1, 1, 1, 1, 0, 0,
 		0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0;
-/*
+		0, 0, 0, 0, 0, 0, 0;*/
 	qrcode::test(D, T);
 	qrcode::writePNG("F:/Graphics/git/3dqrcode_libigl/3DQrcode/3D_Qrcode/images/qrcode.png", D, 1);
-	
-*/
-
-scale = 1;
+	scale = 1;
 	// UI Design
 	viewer.callback_init = [&](igl::viewer::Viewer& viewer)
 	{
@@ -162,7 +159,8 @@ scale = 1;
 			D = D_img.transpose().cast<double>();
 		});
 		viewer.ngui->addButton("Load qrcode", [&]() {
-			scale=qrcode::readData(D);
+			scale = 1;
+			num=qrcode::readData(D);
 		});
 		// Add a button
 		viewer.ngui->addButton("Save Mesh", [&]() {
@@ -178,6 +176,7 @@ scale = 1;
 
 		viewer.ngui->addGroup("Qr code Operator");
 		viewer.ngui->addVariable("Depth", depth);
+		viewer.ngui->addVariable("white", is_white);
 		viewer.ngui->addButton("Image to mesh", [&]() {
 			timer.start();
 			mode = viewer.core.model;
@@ -216,12 +215,6 @@ scale = 1;
 			viewer.data.set_face_based(true);
 			cout << "Carve model time = " << timer.getElapsedTime() << endl;
 			
-		}); viewer.ngui->addButton("Carved Model", [&]() {
-			viewer.data.clear();
-			viewer.data.set_mesh(V_rest,F_rest);
-			viewer.data.set_face_based(true);
-			cout << "Carve model time = " << timer.getElapsedTime() << endl;
-
 		});
 		viewer.ngui->addButton("Merge", [&]() {
 			viewer.data.clear();
@@ -238,32 +231,28 @@ scale = 1;
 			viewer.data.set_face_based(true);
 			viewer.data.set_mesh(V_fin, F_fin);
 			B_mdl.clear();
-			minZ = 0, t = 0;
-			//qrcode::cut_plane(engine,V_fin, F_fin, mode,10, B_mdl,minZ,t,Box);
 			cout << "Model vertex: " << V_fin.rows() << endl << "Model facet: " << F_fin.rows() << endl;
 			cout << "Merge time = " << timer.getElapsedTime() << endl;
-			/*for (int i = 0; i < B_mdl.size(); i++) {
-				cout << i << endl; 
-				for (int j = 0; j < B_mdl[i][0].rows(); j++) {
-					Eigen::MatrixXd Eg(2, 3);
-					Eg.row(0) << B_mdl[i][0].row(j);
-					Eg.row(1) << B_mdl[i][1].row(j);
-					igl::matlab::mlsetmatrix(&engine, "E", Eg);
-					igl::matlab::mleval(&engine, "plot3(E(:,1),E(:,2),E(:,3))");
-					igl::matlab::mleval(&engine, "hold on");
-				}	
-			}*/
 		});
 
 
-		viewer.ngui->addButton("Calculate area", [&]() {   
+		viewer.ngui->addButton("Calculate area(A)", [&]() {   
 			timer.start();
-			Eigen::MatrixXd Pb, Nb, Pw, Nw;
-			Eigen::VectorXd Sw,Sb;
-			qrcode::bwlabel(engine,D, 4, BW);
-			qrcode::bwindex(BW,B_cxx);
-			double Area;
-			std::vector<qrcode::Mesh> meshes=qrcode::visible_mesh(BW, B_cxx, V_pxl, scale);
+			Eigen::MatrixXd Pb, Nb, Pw, Nw,_BW;
+			Eigen::VectorXd Sw,Sb,Ar;
+			
+			
+			
+			qrcode::bwlabel(engine, D, 4, BW);
+			_BW.setZero((BW.rows() - 1) / num + 1, (BW.rows() - 1) / num + 1);
+			for (int i = 0; i < _BW.rows() - 1; i++) {
+				for (int j = 0; j < _BW.cols() - 1; j++) {
+					_BW(i, j) = BW(num*i, num*j);
+				}
+			}
+			qrcode::bwindex(_BW,num,B_cxx);
+			std::vector<qrcode::Mesh> meshes = qrcode::visible_mesh(BW, B_cxx, V_pxl);
+			double Area=0;
 			for (int i = 0; i < meshes.size(); i++) {
 				for (int j = 0; j < meshes[i].F.rows(); j++) {
 					Eigen::Vector3d a, b, c;
@@ -273,6 +262,7 @@ scale = 1;
 					Area += (a - b).cross(b - c).norm();
 				}
 			}
+			
 			cout<<"Area:" << Area << endl;
 			igl::matlab::mleval(&engine, "clc,clear");
 			igl::matlab::mlsetmatrix(&engine, "W", BW);
@@ -286,9 +276,11 @@ scale = 1;
 			
 			qrcode::ambient_occlusion(V_fin, F_fin, Pw, Nw, 5000, Sw);
 			//cout << Sw << endl;
-			qrcode::ambient_occlusion(V_fin, F_fin,  Pb, Nb, meshes,Sb);
+			qrcode::ambient_occlusion(V_fin, F_fin,  Pb, Nb, meshes,Ar,Sb);
 			//cout << Sb << endl;
 			Vis.setZero((BW.rows() - 1)*scale, (BW.cols() - 1)*scale);
+			Eigen::MatrixXd Are;
+			Are.setOnes((BW.rows() - 1)*scale, (BW.cols() - 1)*scale);
 			int indexw = 0;
 			int indexb = 0;
 			for (int i = 0; i < BW.rows() - 1; i++) {
@@ -309,23 +301,26 @@ scale = 1;
 								int x = i*scale + m;
 								int y = j*scale + n;
 								Vis(x, y) = Sb(indexb);
+								Are(x, y) = Ar(indexb);
 								indexb++;
 							}
 						}
 					}
 				}
 			}
-			mw.save(Vis, "V");
+			mw.save(Vis, "AV");
+			mw.save(Are, "A");
 			mw.write("Ambient.mat");
 			cout << "Area time = " << timer.getElapsedTime() << endl;
 		});
-		viewer.ngui->addButton("Calculate area", [&]() {
+
+
+		viewer.ngui->addButton("Illuminate map", [&]() {
 			timer.start();
-			Eigen::MatrixXd Pb, Nb, Pw, Nw;
-			Eigen::VectorXd Sw, Sb;
+			Eigen::MatrixXd Pb, Nb, Pw, Nw,Org;
+			Eigen::VectorXd map;
 			qrcode::bwlabel(engine, D, 4, BW);
 			qrcode::bwindex(BW, B_cxx);
-			std::vector<qrcode::Mesh> meshes = qrcode::visible_mesh(BW, B_cxx, V_pxl, scale);
 			igl::matlab::mleval(&engine, "clc,clear");
 			igl::matlab::mlsetmatrix(&engine, "W", BW);
 			igl::matlab::mleval(&engine, "[a,b]=size(W)");
@@ -333,61 +328,33 @@ scale = 1;
 			igl::matlab::mleval(&engine, "w=length(find(W==0))");
 			int white = igl::matlab::mlgetscalar(&engine, "w");
 			int black = pow(BW.cols() - 1, 2) - white;
-			qrcode::pre_black_normal(BW, Src, Dir, th[0], th_crv, scale, black, Pb, Nb);
-			qrcode::pre_white_normal(BW, V_pxl, scale, white, Pw, Nw);
-
-			//qrcode::ambient_occlusion(V_fin, F_fin, Pw, Nw, 500000, Sw);
-			//cout << Sw << endl;
-			qrcode::ambient_occlusion(V_fin, F_fin, Pb, Nb, meshes, Sb);
-			//qrcode::ambient_occlusion(V_fin, F_fin, Pb, Nb, 500000, Sb);
-			//cout << Sb << endl;
-			Vis.setZero((BW.rows() - 1)*scale, (BW.cols() - 1)*scale);
-			int indexw = 0;
-			int indexb = 0;
-			for (int i = 0; i < BW.rows() - 1; i++) {
-				for (int j = 0; j < BW.cols() - 1; j++) {
-					if (BW(i, j) == 0) {
-						for (int m = 0; m < scale; m++) {
-							for (int n = 0; n < scale; n++) {
-								int x = i*scale + m;
-								int y = j*scale + n;
-								Vis(x, y) = Sw(indexw);
-								indexw++;
-							}
-						}
-					}
-					else {
-						for (int m = 0; m < scale; m++) {
-							for (int n = 0; n < scale; n++) {
-								int x = i*scale + m;
-								int y = j*scale + n;
-								Vis(x, y) = Sb(indexb);
-								indexb++;
-							}
-						}
-					}
-				}
+			qrcode::illumin_origin(V, F, mode, 10000, 10, Org);
+			if (is_white==0){
+				qrcode::pre_black_normal(BW, Src, Dir, th[0], th_crv, scale, black, Pb, Nb);
+				qrcode::illuminate_map(V_fin, F_fin, Org, Pb, map);
+			} 
+			else if(is_white==1){
+				qrcode::pre_white_normal(BW, V_pxl, scale, white, Pw, Nw);
+				qrcode::illuminate_map(V_fin, F_fin, Org, Pw, map);
 			}
-			mw.save(Vis, "V");
-			mw.write("Ambient1.mat");
-			//qrcode::bwindex(engine,BW, scale,B_cii);
-			//qrcode::upperpoint(V_fin, F_fin, mode, V_rest.rows(), wht_num, F_rest.rows(), 2 * (wht_num - D.rows() - D.cols() + 1), upnt, ufct,v_num,f_num);
-			//qrcode::visibility(engine,V_pxl, Src, Dir, th, th_crv, BW, B_cxx, V_fin, F_fin, ufct, v_num, f_num, Vis);
-			//cout << Vis << endl;
-			//qrcode::subdivision(V_fin, F_fin, mode, Vs, Fs, S);
-
-			//qrcode::visibility_t(engine,V_pxl, Src, Dir, th[0], th_crv, BW, B_cxx, mode, minZ, t,Box, B_mdl, Vis);
-			//qrcode::visibility( V_pxl, Src, Dir, th, th_crv, BW, B_cxx, mode, minZ, t, Box, B_mdl,B_md, Vis);
-			//qrcode::visibility(engine,V_pxl, Src, Dir, th[0], th_crv, BW, B_cxx,Vs,Fs,V_fin,S, mode, minZ, t,Box, B_mdl, Vis);
-			cout << "Area time = " << timer.getElapsedTime() << endl;
+			Eigen::MatrixXd Color(map.rows(), 3);
+			igl::jet(map, true, Color);
+			//viewer.data.clear();
+			viewer.core.point_size = 5;
+			viewer.data.set_points(Org, Color);
+			cout << "illuminate time = " << timer.getElapsedTime() << endl;
 		});
-		viewer.ngui->addButton("Optimization", [&]() {
+
+
+		viewer.ngui->addButton("Optimization(A)", [&]() {
 			viewer.data.clear();
-			qrcode::optimization2(engine, D, mode, wht_num, mul, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th, V_pxl, V_rest, F_rest, E_rest, V_fin, F_fin);
+			qrcode::optimization(engine, D, mode, wht_num, mul,num ,V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th, V_pxl, V_rest, F_rest, E_rest, V_fin, F_fin);
 			viewer.data.set_face_based(true);
 			viewer.data.set_mesh(V_fin,F_fin);
 		});
-
+		viewer.ngui->addButton("Optimization(D)", [&]()) {
+			qrcode::watermark(engine, D, mode, wht_num, mul, num, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th, V_pxl, V_rest, F_rest, E_rest, V_fin, F_fin);
+		};
 
 		
 		// Generate menu

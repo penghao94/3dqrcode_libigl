@@ -14,16 +14,16 @@ void qrcode::pre_black_normal(Eigen::MatrixXd & BW, Eigen::MatrixXf & Src, Eigen
 			if (BW(i, j) > 0) {
 				a = Src.row(i*scale*col + j*scale).cast<double>() + Dir.row(i*scale*col + j*scale).cast<double>()*(th(i*scale, j*scale) + th_crv(i, j));
 				b = Src.row((i + 1)*scale*col + j*scale).cast<double>() + Dir.row((i + 1)*scale*col + j*scale).cast<double>()*(th((i + 1)*scale, j*scale) + th_crv(i, j));
-				c = Src.row((i + 1)*scale*col + (j + 1)*scale).cast<double>() + Dir.row((i + 1)*scale*col + (j + 1)*scale).cast<double>()*(th((i + 1)*scale, (j + 1)*scale) + th_crv(i, j));
-				d = Src.row(i*scale*col + (j + 1)*scale).cast<double>() + Dir.row(i*scale*col + (j + 1)*scale).cast<double>()*(th(i*scale, (j + 1)*scale) + th_crv(i, j));
+				d = Src.row((i + 1)*scale*col + (j + 1)*scale).cast<double>() + Dir.row((i + 1)*scale*col + (j + 1)*scale).cast<double>()*(th((i + 1)*scale, (j + 1)*scale) + th_crv(i, j));
+				c = Src.row(i*scale*col + (j + 1)*scale).cast<double>() + Dir.row(i*scale*col + (j + 1)*scale).cast<double>()*(th(i*scale, (j + 1)*scale) + th_crv(i, j));
 				n1 = (b - a).cross(c - b);
-				n2 = (c - a).cross(d - c);
+				n2 = (d - b).cross(c - d);
 				for (int m = 0; m < scale; m++) {
 					for (int n = 0; n < scale; n++) {
 						int x = i*scale + m;
 						int y = j*scale + n;
-						P.row(index) << (Src.row(x*th.cols() + y).cast<double>() + Dir.row(x*th.cols() + y).cast<double>()*(th(x, y) + th_crv(i, j)) +
-							Src.row((x + 1)*th.cols() + y + 1).cast<double>() + Dir.row((x + 1)*th.cols() + y + 1).cast<double>()*(th(x + 1, y + 1) + th_crv(i, j))
+						P.row(index) << (Src.row((x+1)*th.cols() + y).cast<double>() + Dir.row((x+1)*th.cols() + y).cast<double>()*(th(x+1, y) + th_crv(i, j)) +
+							Src.row(x *th.cols() + y + 1).cast<double>() + Dir.row(x*th.cols() + y + 1).cast<double>()*(th(x, y + 1) + th_crv(i, j))
 							) / 2;
 						if (m > n)
 							N.row(index) = n1.normalized().transpose();
@@ -54,15 +54,15 @@ void qrcode::pre_white_normal(Eigen::MatrixXd & BW, Eigen::MatrixXd & V_pxl, int
 			if (BW(i, j) == 0) {
 				a = V_pxl.row(i*scale*col + j*scale).transpose();
 				b = V_pxl.row((i + 1)*scale*col + j*scale).transpose();
-				c = V_pxl.row((i + 1)*scale*col + (j + 1)*scale).transpose();
-				d = V_pxl.row(i*scale*col + (j + 1)*scale).transpose();
+				d = V_pxl.row((i + 1)*scale*col + (j + 1)*scale).transpose();
+				c = V_pxl.row(i*scale*col + (j + 1)*scale).transpose();
 				n1 = (b - a).cross(c - b);
-				n2 = (c - a).cross(d - c);
+				n2 = (d-b).cross(c-b);
 			for (int m = 0; m < scale; m++) {
 				for (int n = 0; n < scale; n++) {
 						int x = i*scale + m;
 						int y = j*scale + n;
-						 P.row(index)<< (V_pxl.row(x*col + y)+ V_pxl.row((x + 1)*col + y + 1)) / 2;
+						 P.row(index)<< (V_pxl.row((x+1)*col + y)+ V_pxl.row(x*col + y + 1)) / 2;
 						 if (m > n)
 							 N.row(index) = n1.normalized().transpose();
 						 else if (m == n)

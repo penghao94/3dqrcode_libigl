@@ -13,7 +13,9 @@
 #include <iostream>
 #include <Eigen/core>
 namespace qrcode {
-	void random_points_on_spherical_mesh(const Eigen::Vector3f& origin,const Eigen::MatrixXd &V,const Eigen::MatrixXi&F,int num_samples,Eigen::MatrixXd &S);
+	void random_points_on_spherical_mesh(const Eigen::Vector3f& origin,const Eigen::MatrixXd &V,const Eigen::MatrixXi&F,int num_samples,int p,Eigen::MatrixXd &S);
+	Eigen::Vector3d random_dir();
+	double refine(double r);
 }
 #endif // !RANDOM_POINT_ON_SPHERICAL_MESH_
 

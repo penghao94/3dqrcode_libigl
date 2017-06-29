@@ -18,5 +18,6 @@
 namespace qrcode {
 	Eigen::MatrixXd rot(const Eigen::VectorXd &before, const Eigen::VectorXd &after);
 	double Box(const Eigen::Vector3f&origin, const Eigen::MatrixXd &V, const Eigen::MatrixXd &rot,Eigen::MatrixXd &Box);
+
 }
 #endif // !SPHERICALCOORDINATE_H

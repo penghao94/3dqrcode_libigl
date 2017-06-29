@@ -4,6 +4,18 @@ project(3D_Qrcode)
 include_directories("${PROJECT_SOURCE_DIR}/qrgen")
 add_subdirectory (qrgen) 
 set (QR_LIBS ${QR_LIBS} qrgen)
+
+#Add basiclib
+include_directories("${PROJECT_SOURCE_DIR}/basic")
+add_subdirectory (basic) 
+set (BASIC_LIBS ${BASIC_LIBS} basic)
+
+#Add vislib
+include_directories("${PROJECT_SOURCE_DIR}/visibility")
+add_subdirectory (visibility) 
+set (VISIBILITY_LIBS ${VISIBILITY_LIBS} visibility)
+
+
 # Add your project files
 FILE(GLOB SRCFILES *.cpp)
 FILE(GLOB HEADFILES *.h)
@@ -19,6 +31,8 @@ target_link_libraries(
  ${LIBIGL_TRIANGLE_EXTRA_LIBRARIES} 
  ${LIBIGL_PNG_EXTRA_LIBRARIES} 
  ${QR_LIBS}  
+ ${BASIC_LIBS}
+ ${VISIBILITY_LIBS}
  ${LIBIGL_CGAL_EXTRA_LIBRARIES}
  ${LIBIGL_EMBREE_EXTRA_LIBRARIES} 
  ${LIBIGL_MATLAB_EXTRA_LIBRARIES}

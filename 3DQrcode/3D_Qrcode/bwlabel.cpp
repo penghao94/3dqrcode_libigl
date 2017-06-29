@@ -227,7 +227,48 @@ bool qrcode::bwindex(Eigen::MatrixXd & L, std::vector<Eigen::MatrixXi>& V_index)
 	_E.resize(0, 0);
 	return true;
 }
+bool qrcode::bwindex(Eigen::MatrixXd & L, int scale, std::vector<Eigen::MatrixXi>& V_index)
+{
+	using namespace std;
+	Eigen::MatrixXd C;
+	Eigen::MatrixXi E, _E;
+	int col = (L.cols() - 1)*scale + 1;
+	std::vector<std::vector<int>> I;
+	igl::unique(L, C);
+	int index = C.rows() - 1;
+	C.resize(0, 0);
+	I.resize(index);
+	V_index.resize(index);
 
+	for (int i = 0; i < L.rows(); i++) {
+		for (int j = 0; j < L.cols(); j++) {
+			if (round(L(i, j)) != 0) {
+				I[round(L(i, j)) - 1].push_back(i*scale*col + j*scale);
+			}
+		}
+	}
+	for (int i = 0; i < index; i++) {
+		qrcode::eList *elist = new qrcode::eList();
+		for (int j = 0; j < I[i].size(); j++) {
+			int a = I[i][j];
+			int b = I[i][j] + scale*col;
+			int c = I[i][j] + scale;
+			int d = I[i][j] + scale*col + scale;
+
+			elist->add(a, b, 0);
+			elist->add(b, d, 0);
+			elist->add(d, c, 0);
+			elist->add(c, a, 0);
+		}
+		elist->matrix(E);
+		delete elist;
+		_E = E.block(0, 0, E.rows(), 2);
+		V_index[i] = _E;
+	}
+	E.resize(0, 0);
+	_E.resize(0, 0);
+	return true;
+}
 bool qrcode::upperpoint(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Matrix4f & mode,int rest_V, int wht_V, int rest_F, int wht_F, Eigen::VectorXi upnt, Eigen::VectorXi & ufct,int &v_num,int &f_num)
 {
 	v_num = 0;

@@ -75,6 +75,7 @@ namespace qrcode {
 		const Eigen::MatrixXd &P,
 		const Eigen::MatrixXd &N,
 		const std::vector<qrcode::Mesh> &M,
+		Eigen::VectorXd &A,
 		Eigen::VectorXd &S
 	);
 	void ambient_occlusion(
@@ -82,6 +83,7 @@ namespace qrcode {
 		const Eigen::MatrixXd& P,
 		const Eigen::MatrixXd& N,
 		const std::vector<qrcode::Mesh>& M,
+		Eigen::VectorXd &A,
 		 Eigen::VectorXd &S
 		);
 	void ambient_occlusion(
@@ -93,6 +95,7 @@ namespace qrcode {
 		const Eigen::MatrixXd &P,
 		const Eigen::MatrixXd &N,
 		const std::vector<qrcode::Mesh> &mesh,
+		Eigen::VectorXd &A,
 		Eigen::VectorXd &S
 	);
 }
