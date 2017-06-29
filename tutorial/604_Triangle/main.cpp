@@ -1,5 +1,6 @@
 #include <igl/viewer/Viewer.h>
 #include <igl/triangle/triangulate.h>
+#include<iostream>
 // Input polygon
 Eigen::MatrixXd V;
 Eigen::MatrixXi E;
@@ -15,23 +16,29 @@ int main(int argc, char *argv[])
   using namespace std;
 
   // Create the boundary of a square
-  V.resize(8,2);
-  E.resize(8,2);
+  V.resize(5,2);
+  E.resize(5,2);
   H.resize(1,2);
 
-  V << -1,-1, 1,-1, 1,1, -1, 1,
-       -2,-2, 2,-2, 2,2, -2, 2;
+  V << -1, -1, 1, -1, 1, 1,0,1, -1, 1;
 
-  E << 0,1, 1,2, 2,3, 3,0,
-       4,5, 5,6, 6,7, 7,4;
+  E << 0, 1, 1, 2, 2, 3, 3, 4,4,0;
 
-  H << 0,0;
+  H << -1,-1;
 
   // Triangulate the interior
-  igl::triangle::triangulate(V,E,H,"a0.005q",V2,F2);
+  igl::triangle::triangulate(V,E,H,"0.5",V2,F2);
 
   // Plot the generated mesh
   igl::viewer::Viewer viewer;
+  std::cout << F2 << std::endl;
+  std::cout << F2.array().nonZeros() << std::endl;
   viewer.data.set_mesh(V2,F2);
+  Eigen::Vector3i a (0,0,0);
+  Eigen::Vector3i b (1,0,0);
+  Eigen::Vector3i c (0,1,0);
+  Eigen::VectorXi d = (a-b).cross(c-a);
+  delete a.data();
+  cout << d << endl;
   viewer.launch();
 }

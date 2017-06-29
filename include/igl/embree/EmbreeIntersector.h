@@ -404,8 +404,8 @@ inline bool igl::embree::EmbreeIntersector::intersectBeam(
   bool hasHit = false;
   Hit bestHit;
 
-  if(closestHit)
-    bestHit.t = std::numeric_limits<float>::max();
+  if (closestHit)
+	  bestHit.t = (std::numeric_limits<float>::max)();
   else
     bestHit.t = 0;
 

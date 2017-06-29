@@ -38,11 +38,10 @@ namespace qrcodegen {
  * This class covers the QR Code model 2 specification, supporting all versions (sizes)
  * from 1 to 40, all 4 error correction levels, and only 3 character encoding modes.
  */
-class QrCode final {
+class QrCode final {  
 	
 	/*---- Public helper enumeration ----*/
 public:
-	
 	/* 
 	 * Represents the error correction level used in a QR Code symbol.
 	 */
@@ -50,7 +49,6 @@ public:
 		// Constants declared in ascending order of error protection.
 	public:
 		const static Ecc LOW, MEDIUM, QUARTILE, HIGH;
-		
 		// Fields.
 	public:
 		const int ordinal;  // (Public) In the range 0 to 3 (unsigned 2-bit integer).
@@ -110,7 +108,6 @@ public:
 	
 	/* The error correction level used in this QR Code symbol. */
 	const Ecc &errorCorrectionLevel;
-	
 	/* The mask pattern used in this QR Code symbol, in the range 0 to 7 (i.e. unsigned 3-bit integer).
 	 * Note that even if a constructor was called with automatic masking requested
 	 * (mask = -1), the resulting object will still have a mask value between 0 and 7. */
@@ -155,7 +152,7 @@ public:
 	 * left corner has the coordinates (x=0, y=0). If the given coordinates are out of bounds, then 0 (white) is returned.
 	 */
 	int getModule(int x, int y) const;
-	
+	int getFunctionModule(int x, int y)const;
 	
 	/* 
 	 * Based on the given number of border modules to add as padding, this returns a

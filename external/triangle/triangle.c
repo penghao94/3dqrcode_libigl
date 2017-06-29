@@ -11028,19 +11028,19 @@ struct behavior *b;
 
 #ifdef REDUCED
   if (!b->quiet) {
-    printf(
-      "Constructing Delaunay triangulation by divide-and-conquer method.\n");
+   /* printf(
+      "Constructing Delaunay triangulation by divide-and-conquer method.\n");*/
   }
   hulledges = divconqdelaunay(m, b);
 #else /* not REDUCED */
   if (!b->quiet) {
-    printf("Constructing Delaunay triangulation ");
+   // printf("Constructing Delaunay triangulation ");
     if (b->incremental) {
       printf("by incremental method.\n");
     } else if (b->sweepline) {
       printf("by sweepline method.\n");
     } else {
-      printf("by divide-and-conquer method.\n");
+     // printf("by divide-and-conquer method.\n");
     }
   }
   if (b->incremental) {
@@ -12448,7 +12448,7 @@ char *polyfilename;
 
   if (b->poly) {
     if (!b->quiet) {
-      printf("Recovering segments in Delaunay triangulation.\n");
+     // printf("Recovering segments in Delaunay triangulation.\n");
     }
 #ifdef TRILIBRARY
     strcpy(polyfilename, "input");
@@ -13002,7 +13002,7 @@ int regions;
   triangle ptr;                         /* Temporary variable used by sym(). */
 
   if (!(b->quiet || (b->noholes && b->convex))) {
-    printf("Removing unwanted triangles.\n");
+   // printf("Removing unwanted triangles.\n");
     if (b->verbose && (holes > 0)) {
       printf("  Marking holes for elimination.\n");
     }
@@ -14370,7 +14370,7 @@ char **argv;
 
 #ifdef TRILIBRARY
   if (!b->quiet) {
-    printf("Writing vertices.\n");
+   // printf("Writing vertices.\n");
   }
   /* Allocate memory for output vertices if necessary. */
   if (*pointlist == (REAL *) NULL) {
@@ -14535,7 +14535,7 @@ char **argv;
 
 #ifdef TRILIBRARY
   if (!b->quiet) {
-    printf("Writing triangles.\n");
+   // printf("Writing triangles.\n");
   }
   /* Allocate memory for output triangles if necessary. */
   if (*trianglelist == (int *) NULL) {
@@ -14680,7 +14680,7 @@ char **argv;
 
 #ifdef TRILIBRARY
   if (!b->quiet) {
-    printf("Writing segments.\n");
+   // printf("Writing segments.\n");
   }
   /* Allocate memory for output segments if necessary. */
   if (*segmentlist == (int *) NULL) {
@@ -15851,7 +15851,7 @@ char **argv;
     highorder(&m, &b);       /* Promote elements to higher polynomial order. */
   }
   if (!b.quiet) {
-    printf("\n");
+   // printf("\n");
   }
 
 #ifdef TRILIBRARY
@@ -15989,7 +15989,7 @@ char **argv;
            (tv6.tv_usec - tv0.tv_usec) / 1000l);
 #endif /* not NO_TIMER */
 
-    statistics(&m, &b);
+    //statistics(&m, &b);
   }
 
 #ifndef REDUCED

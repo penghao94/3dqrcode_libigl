@@ -46,7 +46,7 @@ IGL_INLINE Eigen::MatrixXd igl::random_dir_stratified(const int n)
   // Finish off with uniform random directions
   for(;row<n;row++)
   {
-    N.row(row) = random_dir();
+	  N.row(row) = random_dir();
   }
   return N;
 }

@@ -91,7 +91,7 @@ namespace igl
 #include <thread>
 #include <vector>
 #include <algorithm>
-
+#include <iostream>
 template<typename Index, typename FunctionType >
 inline bool igl::parallel_for(
   const Index loop_size, 
@@ -140,7 +140,7 @@ inline bool igl::parallel_for(
   {
     // Size of a slice for the range functions
     Index slice = 
-      std::max(
+      (std::max)(
         (Index)std::round((loop_size+1)/static_cast<double>(nthreads)),(Index)1);
  
     // [Helper] Inner loop
@@ -154,14 +154,14 @@ inline bool igl::parallel_for(
     pool.reserve(nthreads);
     // Inner range extents
     Index i1 = 0;
-    Index i2 = std::min(0 + slice, loop_size);
+    Index i2 = (std::min)(0 + slice, loop_size);
     {
       size_t t = 0;
       for (; t+1 < nthreads && i1 < loop_size; ++t)
       {
         pool.emplace_back(range, i1, i2, t);
         i1 = i2;
-        i2 = std::min(i2 + slice, loop_size);
+        i2 = (std::min)(i2 + slice, loop_size);
       }
       if (i1 < loop_size)
       {
@@ -174,7 +174,9 @@ inline bool igl::parallel_for(
     for(size_t t = 0;t<nthreads;t++)
     {
       accum_func(t);
-    }
+    }  
+	pool.clear();
+	pool.swap(std::vector<std::thread>());
     return true;
   }
 }

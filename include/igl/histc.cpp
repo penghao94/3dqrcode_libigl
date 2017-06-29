@@ -8,6 +8,7 @@
 #include "histc.h"
 #include <cassert>
 #include <iostream>
+#include "..\..\3DQrcode\3D_Qrcode\histc.h"
 
 template <typename DerivedX, typename DerivedE, typename DerivedN, typename DerivedB>
 IGL_INLINE void igl::histc(
@@ -53,7 +54,7 @@ IGL_INLINE void igl::histc(
     // Boring one-offs
     if(x < E(0) || x > E(E.size()-1))
     {
-      B(j) = -1;
+      B(j) = rand()%(E.size()-1);
       continue;
     }
     // Find x in E
@@ -107,3 +108,4 @@ template void igl::histc<Eigen::Matrix<double, -1, 1, 0, -1, 1>, Eigen::Matrix<d
 template void igl::histc<Eigen::Matrix<double, -1, 1, 0, -1, 1>, Eigen::Matrix<double, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, 1, 0, -1, 1> >(Eigen::MatrixBase<Eigen::Matrix<double, -1, 1, 0, -1, 1> > const&, Eigen::MatrixBase<Eigen::Matrix<double, -1, 1, 0, -1, 1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, 1, 0, -1, 1> >&);
 template void igl::histc<Eigen::Matrix<double, -1, 1, 0, -1, 1>, Eigen::Matrix<double, -1, 1, 0, -1, 1>, Eigen::Matrix<int, -1, -1, 0, -1, -1> >(Eigen::MatrixBase<Eigen::Matrix<double, -1, 1, 0, -1, 1> > const&, Eigen::MatrixBase<Eigen::Matrix<double, -1, 1, 0, -1, 1> > const&, Eigen::PlainObjectBase<Eigen::Matrix<int, -1, -1, 0, -1, -1> >&);
 #endif
+

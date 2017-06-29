@@ -4,7 +4,7 @@
 #include <igl/embree/ambient_occlusion.h>
 #include <igl/viewer/Viewer.h>
 #include <iostream>
-
+#include <igl/readOBJ.h>
 #include "tutorial_shared_path.h"
 
 // Mesh
@@ -18,7 +18,7 @@ bool key_down(igl::viewer::Viewer& viewer, unsigned char key, int modifier)
 {
   using namespace Eigen;
   using namespace std;
-  const RowVector3d color(0.9,0.85,0.9);
+  const RowVector3d color(0.5,0.85,0.9);
   switch(key)
   {
     case '1':
@@ -59,13 +59,13 @@ int main(int argc, char *argv[])
     "Press , to turn down lighting"<<endl;
 
   // Load a mesh in OFF format
-  igl::readOFF(TUTORIAL_SHARED_PATH "/fertility.off", V, F);
+  igl::readOBJ(TUTORIAL_SHARED_PATH "/Experiment_17.obj", V, F);
 
   MatrixXd N;
   igl::per_vertex_normals(V,F,N);
 
   // Compute ambient occlusion factor using embree
-  igl::embree::ambient_occlusion(V,F,V,N,500,AO);
+  igl::embree::ambient_occlusion(V,F,V,N,500000,AO);
   AO = 1.0 - AO.array();
 
   // Show mesh
