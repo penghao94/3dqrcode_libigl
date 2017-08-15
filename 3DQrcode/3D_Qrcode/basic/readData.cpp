@@ -1,5 +1,6 @@
 
 #include "readData.h"
+#include<stdio.h>
 #include<vector>
 #include <igl\file_dialog_open.h>
 #include "qrcodeGenerator.h"
@@ -8,6 +9,10 @@
 #include "../2D_visible.h"
 #include "../mesh.h"
 #include <iostream>
+#include <igl/matlab/MatlabWorkspace.h>
+#include <omp.h>
+#include<limits.h>
+#include<igl/Timer.h>
 int qrcode::readData(Eigen::MatrixXi & D)
 {
 	std::string input ="";
@@ -49,7 +54,7 @@ int qrcode::readData(Engine *engine, Eigen::MatrixXd & D, Eigen::MatrixXd & isF)
 	if (input != ""){
 		Eigen::MatrixXd _D;
 		int scale=readData(input, engine, _D,isF);
-		D.setOnes((_D.rows() - 1)*scale + 1, (_D.cols() - 1)*scale + 1);
+		D.setZero((_D.rows() - 1)*scale + 1, (_D.cols() - 1)*scale + 1);
 		for(int i=0;i<_D.rows()-1;i++){
 			for(int j=0;j<_D.cols()-1;j++){
 				for(int m=0;m<scale;m++){
@@ -146,12 +151,16 @@ int qrcode::readData(const std::string file, Eigen::MatrixXd & D)
 
 int qrcode::readData(const std::string file, Engine *engine, Eigen::MatrixXd & D, Eigen::MatrixXd & F)
 {
+	igl::Timer timer;
+	timer.start();
+	igl::matlab::MatlabWorkspace mw;
 	using namespace std;
 	int mask = 0;
 	int border = 1;
 	int errColLvl = 0;
 	int scale = 1;
 	char text[1024];
+
 	const char* input = file.c_str();
 	FILE* in = fopen(input, "r");
 	if (in == (FILE*)NULL) {
@@ -160,32 +169,45 @@ int qrcode::readData(const std::string file, Engine *engine, Eigen::MatrixXd & D
 	}
 	else {
 		fscanf(in, "%d %d %d %d\n", &errColLvl, &mask, &border, &scale);
-		fscanf(in, "%s\n", &text);
+		fgets(text, 1023, in);
 		fclose(in);
+
 		std::string str = text;
-		Eigen::MatrixXd BW;
-		vector<Eigen::MatrixXi> B_cxx;
+		std::vector<Eigen::VectorXd> Area(8);
 		if (mask == -1) {
-			for (int i = 0; i < 8; i++) {
-				qrCodeGenerator(str, errColLvl, i, border, D, F);
+			#pragma omp parallel for;
+			for (int index = 0; index < 8; index++) {
+
+				Eigen::MatrixXd BW;
+				vector<Eigen::MatrixXi> B_cxx;
+
+				qrCodeGenerator(str, errColLvl, index, border, D, F);
+
 				qrcode::bwlabel(engine, D, 4, BW);
+
 				qrcode::bwindex(BW, B_cxx);
-				double Area;
+
 				std::vector<qrcode::Mesh> meshes;
 				std::vector<Eigen::Vector2d> B;
+
 				const int col = BW.cols()*scale;
 				qrcode::Mesh mesh;
+
 				Eigen::MatrixXd H(0, 2);
+
 				for (int i = 0; i < BW.rows() - 1; i++) {
 					for (int j = 0; j < BW.cols() - 1; j++) {
 						for (int m = 0; m < scale; m++) {
 							for (int n = 0; n < scale; n++) {
-								if (BW(i, j) > 0) {
+
+								if (BW(i, j) > 0&&F(i,j)==0.0) {
 									int x = i*scale + m;
 									int y = j*scale + n;
 									qrcode::lightRegion(Eigen::RowVector2d(x + 0.5, y + 0.5), B_cxx[BW(i, j) - 1], scale, BW.cols(), B);
+
 									Eigen::MatrixXd V_qr(B.size()+1, 3);
 									Eigen::MatrixXi f;
+
 									for (int k = 0; k < B.size(); k++) {
 										V_qr.row(k) << B[k](0),B[k](1),0;
 									}
@@ -197,6 +219,7 @@ int qrcode::readData(const std::string file, Engine *engine, Eigen::MatrixXd & D
 									assert(B.size() + 1 == V_qr.rows() && f.rows() > 0);
 									mesh.F = f;
 									meshes.push_back(mesh);
+
 									B.swap(std::vector<Eigen::Vector2d>());
 									V_qr.resize(0, 0);
 									f.resize(0, 0);
@@ -207,19 +230,45 @@ int qrcode::readData(const std::string file, Engine *engine, Eigen::MatrixXd & D
 						}
 					}
 				}
+				Area[index].setZero(meshes.size());
+
 				for (int i = 0; i < meshes.size(); i++) {
 					for (int j = 0; j < meshes[i].F.rows(); j++) {
 						Eigen::Vector3d a, b, c;
 						a = meshes[i].V.row(meshes[i].F(j, 0)).transpose();
 						b = meshes[i].V.row(meshes[i].F(j, 1)).transpose();
 						c = meshes[i].V.row(meshes[i].F(j, 2)).transpose();
-						Area += (a - b).cross(b - c).norm();
+						Area[index](i)= (a - b).cross(b - c).norm();
 					}
 				}
 			}
+			double max = 0,min= numeric_limits<double>::max();
+			for (int i = 0; i < 8; i++) {
+				max = std::max(max, Area[i].maxCoeff());
+				min = std::min(min, Area[i].minCoeff());
+			}
+			double slice = max / 10;
+			min = numeric_limits<double>::max();
+			int n;
+			for (int i = 0; i < 8; i++) {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+				double temp = 0;
+
+				for (int j = 0; j < Area[i].rows(); j++) {
+					temp += pow(2, Area[i](j) / slice);
+				}
+				if (min != std::min(min, temp)) {
+					
+					min = std::min(min, temp);
+					n = i;
+				}
+			}
+			qrCodeGenerator(str, errColLvl, n, border, D, F);
 		}else
 			qrCodeGenerator(str, errColLvl, mask, border, D,F);
+		writePNG(engine,"qrcode.png",scale,D,F);
+		std::cout << timer.getElapsedTimeInSec() << " s" << std::endl;
 		return scale;
 	}
 
 }
+ 

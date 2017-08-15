@@ -190,6 +190,7 @@ bool qrcode::optimization(Engine * engine, Eigen::MatrixXd & D, Eigen::Matrix4f 
 					}
 				}
 			}
+
 		}
 		if (stop == false) {
 			//Carve down 

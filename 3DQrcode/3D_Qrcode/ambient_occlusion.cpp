@@ -22,6 +22,7 @@ void qrcode::ambient_occlusion(const Eigen::MatrixXd & V, const Eigen::MatrixXi 
 	igl::embree::EmbreeIntersector ei;
 	ei.init(V.template cast<float>(), F.template cast<int>());
 	ambient_occlusion(ei, P, N, num_samples, S);
+	ei.global_deinit();
 }
 
 void qrcode::ambient_occlusion(const igl::embree::EmbreeIntersector & ei, const Eigen::MatrixXd & P, const Eigen::MatrixXd & N, const int num_samples, Eigen::VectorXd & S)
@@ -45,7 +46,7 @@ void qrcode::ambient_occlusion(const std::function<bool(const Eigen::Vector3f&, 
 	S.resize(n, 1);
 	VectorXi hits = VectorXi::Zero(n, 1);
 	// Embree seems to be parallel when constructing but not when tracing rays
-	const MatrixXf D = igl::random_dir_stratified(num_samples).cast<float>();
+	MatrixXf D = igl::random_dir_stratified(num_samples).cast<float>();
 	const auto & inner = [&P, &N, &num_samples, &D, &S, &shoot_ray](const int p)
 	{
 		const Vector3f origin = P.row(p).cast<float>();
@@ -71,6 +72,7 @@ void qrcode::ambient_occlusion(const std::function<bool(const Eigen::Vector3f&, 
 		S(p) = b / a;
 	};
 	igl::parallel_for(n, inner, 1000);
+	D.resize(0, 0);
 }
 
 void qrcode::ambient_occlusion(const Eigen::MatrixXd & V, const Eigen::MatrixXi & F, const Eigen::MatrixXd & P, const Eigen::MatrixXd & N, const std::vector<qrcode::Mesh>& M, Eigen::VectorXd &A, Eigen::VectorXd & S)
@@ -78,7 +80,8 @@ void qrcode::ambient_occlusion(const Eigen::MatrixXd & V, const Eigen::MatrixXi 
 	using namespace Eigen;
 	igl::embree::EmbreeIntersector ei;
 	ei.init(V.cast<float>(), F);
-	return ambient_occlusion(ei, P, N, M, A,S);
+   ambient_occlusion(ei, P, N, M, A,S);
+   ei.global_deinit();
 }
 
 void qrcode::ambient_occlusion(const igl::embree::EmbreeIntersector & ei, const Eigen::MatrixXd & P, const Eigen::MatrixXd & N, const std::vector<qrcode::Mesh>& M, Eigen::VectorXd &A, Eigen::VectorXd & S)
@@ -98,9 +101,6 @@ void qrcode::ambient_occlusion(const std::function<bool(const Eigen::Vector3f&, 
 {
 	using namespace Eigen;
 	using namespace std;
-	const Vector3f origin = P.row(6449).cast<float>();
-	Eigen::MatrixXd _V = (M[6449].V - origin.cast<double>().transpose().replicate(M[6449].V.rows(), 1)).rowwise().normalized();
-	igl::writeOBJ("6449.obj",_V, M[6449].F);
 	assert(P.rows() == N.rows() && P.rows() == M.size());
 	const int n = P.rows();
 	//Resize output

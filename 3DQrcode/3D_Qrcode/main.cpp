@@ -30,6 +30,8 @@ Self-definition function
 #include "illuminate_map.h"
 #include "optimization.h"
 #include "watermark.h"
+#include "direction_light.h"
+ 
 /*
 Calling function
 */
@@ -44,7 +46,10 @@ Calling function
 #include <igl/matlab/MatlabWorkspace.h>
 #include <igl/unique.h>
 #include <igl/jet.h>
+#include <igl/PI.h>
 #include <igl/png/writePNG.h>
+#include <thread>
+#include <chrono>
 int main(int argc, char *argv[])
 {
 	// Initiate viewer, timer and setting 
@@ -90,6 +95,7 @@ int main(int argc, char *argv[])
 	Eigen::MatrixXi E_rest;
 	//Parameters of triangulate
 	Eigen::Matrix4f mode,model;
+	float zoom;
 	Eigen::MatrixXi F_tri;
 	//Parameters of final model
 	Eigen::MatrixXd V_fin;
@@ -120,7 +126,13 @@ int main(int argc, char *argv[])
 	std::vector<Eigen::MatrixXi>S;
 	//Output of visibility
 	Eigen::MatrixXd Vis;
-	
+	Eigen::RowVectorXd centr;
+
+	/*direction light*/
+
+	double latitude = 45., longitude = 0.;
+	const auto radian = [](double angle)->double {return angle / 180 * igl::PI; };
+	double distance = 10;
 	/*D.resize(7, 7);
 	D << 0, 0, 0, 0, 0, 0, 0,
 		0, 1, 1, 1, 1, 0, 0,
@@ -130,7 +142,7 @@ int main(int argc, char *argv[])
 		0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0;*/
 	qrcode::test(D, T);
-	qrcode::writePNG("F:/Graphics/git/3dqrcode_libigl/3DQrcode/3D_Qrcode/images/qrcode.png", D, 1);
+	//qrcode::writePNG("F:/Graphics/git/3dqrcode_libigl/3DQrcode/3D_Qrcode/images/qrcode.png", D, 1);
 	scale = 1;
 	// UI Design
 	viewer.callback_init = [&](igl::viewer::Viewer& viewer)
@@ -160,7 +172,9 @@ int main(int argc, char *argv[])
 		});
 		viewer.ngui->addButton("Load qrcode", [&]() {
 			scale = 1;
-			num=qrcode::readData(D);
+			//num=qrcode::readData(D);
+			Eigen::MatrixXd func;
+			num = qrcode::readData(engine, D, func);
 		});
 		// Add a button
 		viewer.ngui->addButton("Save Mesh", [&]() {
@@ -180,6 +194,7 @@ int main(int argc, char *argv[])
 		viewer.ngui->addButton("Image to mesh", [&]() {
 			timer.start();
 			mode = viewer.core.model;
+			zoom = viewer.core.model_zoom*viewer.core.camera_zoom;
 			if (V.rows() != 0 && D.rows() != 0) {
 				wht_num = qrcode::img_to_sep_mesh(viewer, V, F, D, scale, acc, F_hit, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th,V_pxl);
 			}
@@ -276,6 +291,7 @@ int main(int argc, char *argv[])
 			
 			qrcode::ambient_occlusion(V_fin, F_fin, Pw, Nw, 5000, Sw);
 			//cout << Sw << endl;
+			
 			qrcode::ambient_occlusion(V_fin, F_fin,  Pb, Nb, meshes,Ar,Sb);
 			//cout << Sb << endl;
 			Vis.setZero((BW.rows() - 1)*scale, (BW.cols() - 1)*scale);
@@ -312,6 +328,15 @@ int main(int argc, char *argv[])
 			mw.save(Are, "A");
 			mw.write("Ambient.mat");
 			cout << "Area time = " << timer.getElapsedTime() << endl;
+			Pb.resize(0, 0);
+			Sb.resize(0, 0);
+			Nw.resize(0, 0);
+			Nb.resize(0, 0);
+			_BW.resize(0, 0);
+			Sw.resize(0);
+			Sb.resize(0);
+			meshes.clear();
+			meshes.swap(std::vector<qrcode::Mesh>());
 		});
 
 
@@ -328,14 +353,15 @@ int main(int argc, char *argv[])
 			igl::matlab::mleval(&engine, "w=length(find(W==0))");
 			int white = igl::matlab::mlgetscalar(&engine, "w");
 			int black = pow(BW.cols() - 1, 2) - white;
-			qrcode::illumin_origin(V, F, mode, 10000, 10, Org);
+			qrcode::illumin_origin(V, F, mode, 10000, 10,centr, Org);
 			if (is_white==0){
 				qrcode::pre_black_normal(BW, Src, Dir, th[0], th_crv, scale, black, Pb, Nb);
-				qrcode::illuminate_map(V_fin, F_fin, Org, Pb, map);
+				//qrcode::illuminate_map(V_fin, F_fin, Org, Pb, map);
 			} 
+			
 			else if(is_white==1){
 				qrcode::pre_white_normal(BW, V_pxl, scale, white, Pw, Nw);
-				qrcode::illuminate_map(V_fin, F_fin, Org, Pw, map);
+				//qrcode::illuminate_map(V_fin, F_fin, Org, Pw, map);
 			}
 			Eigen::MatrixXd Color(map.rows(), 3);
 			igl::jet(map, true, Color);
@@ -352,11 +378,20 @@ int main(int argc, char *argv[])
 			viewer.data.set_face_based(true);
 			viewer.data.set_mesh(V_fin,F_fin);
 		});
-		viewer.ngui->addButton("Optimization(D)", [&]()) {
-			qrcode::watermark(engine, D, mode, wht_num, mul, num, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th, V_pxl, V_rest, F_rest, E_rest, V_fin, F_fin);
-		};
+		viewer.ngui->addButton("Optimization(D)", [&]() {
+			qrcode::watermark(viewer,engine, D, mode, wht_num, mul, num, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th, V_pxl, V_rest, F_rest, E_rest, V_fin, F_fin);
+			viewer.data.clear();
+			viewer.data.set_mesh(V_fin, F_fin);
+		});
 
-		
+		viewer.ngui->addVariable("latitude", latitude);
+		viewer.ngui->addVariable("longitude", longitude);
+		viewer.ngui->addVariable("distance", distance);
+		viewer.ngui->addButton("Direction light", [&]() {
+			Eigen::Vector4d position;
+			position << cos(radian(latitude))*cos(radian(longitude)), cos(radian(latitude))*sin(radian(longitude)), sin(radian(latitude)),distance;
+			qrcode::direction_light(viewer, engine, position, D, mode,zoom, wht_num, mul, num, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th, V_pxl, V_rest, F_rest, E_rest, V_fin, F_fin);
+		});
 		// Generate menu
 		viewer.screen->performLayout();
 

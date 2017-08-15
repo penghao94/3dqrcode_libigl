@@ -158,7 +158,7 @@ public:
 	 * Based on the given number of border modules to add as padding, this returns a
 	 * string whose contents represents an SVG XML file that depicts this QR Code symbol.
 	 * Note that Unix newlines (\n) are always used, regardless of the platform.
-	 */
+	 */ 
 	std::string toSvgString(int border) const;
 	
 	
@@ -189,6 +189,7 @@ private:
 	
 	// Sets the color of a module and marks it as a function module.
 	// Only used by the constructor. Coordinates must be in range.
+	public:
 	void setFunctionModule(int x, int y, bool isBlack);
 	
 	
@@ -225,14 +226,14 @@ private:
 	
 	
 	/*---- Private static helper functions ----*/
-private:
-	
+
+public:	
 	// Returns a set of positions of the alignment patterns in ascending order. These positions are
 	// used on both the x and y axes. Each value in the resulting array is in the range [0, 177).
 	// This stateless pure function could be implemented as table of 40 variable-length lists of unsigned bytes.
 	static std::vector<int> getAlignmentPatternPositions(int ver);
 	
-	
+private:	
 	// Returns the number of raw data modules (bits) available at the given version number.
 	// These data modules are used for both user data codewords and error correction codewords.
 	// This stateless pure function could be implemented as a 40-entry lookup table.

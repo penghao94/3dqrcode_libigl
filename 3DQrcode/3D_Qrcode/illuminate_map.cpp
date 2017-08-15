@@ -5,7 +5,7 @@
 #include <igl/parallel_for.h>
 #include <vector>
 
-void qrcode::illumin_origin(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Matrix4f &mode,int num_samples, int distance, Eigen::MatrixXd & P)
+void qrcode::illumin_origin(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Matrix4f &mode,int num_samples, int distance, Eigen::RowVectorXd &centriod, Eigen::MatrixXd & P)
 {
 	Eigen::Matrix4f model;
 	model = mode.inverse().eval();
@@ -15,7 +15,7 @@ void qrcode::illumin_origin(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Mat
 	_V = (mode*(_V.transpose().cast<float>())).transpose().cast<double>().block(0, 0, _V.rows(), 3);
 	Eigen::MatrixXd BC;
 	igl::barycenter(_V,F,BC);
-	Eigen::RowVectorXd centriod = 0.5*(BC.colwise().maxCoeff() + BC.colwise().minCoeff()).eval();
+	centriod = 0.5*(BC.colwise().maxCoeff() + BC.colwise().minCoeff()).eval();
 	P.resize(num_samples, 3);
 	for (int i = 0; i < num_samples; i++) {
 		P.row(i) = random_dir();
@@ -26,14 +26,14 @@ void qrcode::illumin_origin(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Mat
 	P = (model*(P.transpose().cast<float>())).transpose().cast<double>().block(0, 0, P.rows(), 3);
 }
 
-void qrcode::illuminate_map(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::MatrixXd & org, Eigen::MatrixXd & des, Eigen::VectorXd & map)
+void qrcode::illuminate_map(igl::embree::EmbreeIntersector& ei, Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::MatrixXd & org, Eigen::MatrixXd & des, Eigen::VectorXd & map)
 {
 	using namespace Eigen;
 	int n = org.rows();
 	//map has the same size of origin point
 	map.resize(n);
 	//initiate Embree and construct shoot ray function
-	igl::embree::EmbreeIntersector ei;
+	//igl::embree::EmbreeIntersector ei;
 	ei.init(V.cast<float>(), F);
 	
 	const auto &shoot_ray = [&ei](
@@ -58,16 +58,17 @@ void qrcode::illuminate_map(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::Mat
 		map(p) = double(num) / des.rows();  
 	};
 	igl::parallel_for(n, inner, 1000);
+	ei.deinit();
 }
 
-void qrcode::is_light(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::VectorXd & org, Eigen::MatrixXd & des, Eigen::VectorXd & map)
+void qrcode::is_light(igl::embree::EmbreeIntersector& ei, Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::VectorXd & org, Eigen::MatrixXd & des, Eigen::VectorXd & map)
 {
 	using namespace Eigen;
 	int n = des.rows();
 	//map has the same size of destination point
 	map.resize(n);
 	//initiate Embree and construct shoot ray function
-	igl::embree::EmbreeIntersector ei;
+	//igl::embree::EmbreeIntersector ei;
 	ei.init(V.cast<float>(), F);
 	const auto &shoot_ray = [&ei](
 		const Eigen::Vector3f& s,
@@ -90,5 +91,5 @@ void qrcode::is_light(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::VectorXd 
 			map(p) = 0;
 	};
 	igl::parallel_for(n, inner, 1000);
-
+	ei.deinit();
 }

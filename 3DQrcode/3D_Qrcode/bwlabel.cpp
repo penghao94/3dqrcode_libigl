@@ -80,17 +80,6 @@ bool qrcode::bwindex(Engine *engine,Eigen::MatrixXd &V_pxl,Eigen::MatrixXd & L,i
 				}
 			}
 		}
-		if (i == 24) {
-			for (int k = 0; k < _E.rows(); k++) {
-				temp.row(2*k) << int(_E(k, 0) / L.cols()*scale), int(_E(k, 0) % L.cols()*scale);
-				temp.row(2*k+1) << int(_E(k, 1) / L.cols()*scale), int(_E(k, 1) % L.cols()*scale);
-				//cout << int(_E(k, 1) / L.cols()*scale) << "		" << int(_E(k, 1) % L.cols()*scale) << endl;
-			}
-			igl::matlab::mlsetmatrix(&engine, "temp", temp);
-			igl::matlab::mleval(&engine, "plot(temp(:,2),temp(:,1));");
-		}
-		
-
 		V.resize(E.rows()*scale, 3);
 		for (int k = 0; k < E.rows(); k++) {
 			
@@ -239,7 +228,8 @@ bool qrcode::bwindex(Eigen::MatrixXd & L, int scale, std::vector<Eigen::MatrixXi
 	C.resize(0, 0);
 	I.resize(index);
 	V_index.resize(index);
-
+	cout << L << endl;
+	cout << index << endl;
 	for (int i = 0; i < L.rows(); i++) {
 		for (int j = 0; j < L.cols(); j++) {
 			if (round(L(i, j)) != 0) {
