@@ -4,25 +4,31 @@
 #include <igl/unique.h>
 #include "../bwlabel.h"
 #include "../visibility/halfedge.h"
-bool qrcode::qrCodeGenerator(std::string text, const qrcodegen::QrCode::Ecc & errColLvl, int mask,int border, Eigen::MatrixXd & Q)
+bool qrcode::qrCodeGenerator(std::string text, int errColLvl, int mask,int border, Eigen::MatrixXd & Q)
 {
-	const char*str = text.c_str();
-	const qrcodegen::QrCode _qr = qrcodegen::QrCode::encodeText(str, errColLvl);
-	qrcodegen::QrCode qr = qrcodegen::QrCode(_qr, mask);
-	qrcode::qrcodeModefier(qr);
-	Q.setZero(2 * border + qr.size + 1, 2 * border + qr.size + 1);
-	for (int i = -border; i < qr.size + border; i++) {
-		for (int j = -border; j < qr.size + border; j++) {
+	/*Generate origin QR code */
+	qrgen::Bits bits;
+	qrgen::Version *version = qrgen::getMinVersion(text, static_cast<qrgen::LEVEL>(errColLvl), bits);
+	std::vector<std::vector<qrgen::Pixel>> pixels = encode(bits, version, static_cast<qrgen::LEVEL>(errColLvl), new qrgen::Mask(mask));
+	//std::cout << pixels.size() << std::endl;
+	Q.setZero(2 * border + pixels.size() + 1, 2 * border + pixels.size() + 1);
+	for (int y = 0; y < pixels.size(); y++) {
+		for (int x = 0; x < pixels.size(); x++) {
 			//1 is black block
-			Q(i+border, j+border) = (qr.getModule(j, i) == 1 ? 1.0 : 0.0);
+			Q(y+border, x+border) = pixels[y][x].getPixel();
 		}
 	}
+	for (int x = 3; x < 6; x++) {
+		Q(2, x) = 1;
+		Q(6, x) = 1;
+	}
+	std::cout << Q << std::endl;
 	return true;
 }
 
 bool qrcode::qrCodeGenerator(std::string text, int errColLvl, int mask, int border, Eigen::MatrixXd & Q, Eigen::MatrixXd & F)
 {
-	const char*str = text.c_str();
+	/*const char*str = text.c_str();
 	const qrcodegen::QrCode::Ecc *newEcl; 
 	switch (errColLvl)
 	{
@@ -50,7 +56,7 @@ bool qrcode::qrCodeGenerator(std::string text, int errColLvl, int mask, int bord
 				Q(i + border, j + border) = (qr.getModule(j, i) == 1 ? 1.0 : 0.0);
 				F(i + border, j + border) = (qr.getFunctionModule(j, i) == 1 ? 1.0 : 0.0);
 			}
-		}
+		}*/
 	return true;
 }
 

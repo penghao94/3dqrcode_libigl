@@ -16,8 +16,8 @@
 #include<fstream>
 #include <string>
 #include <vector>
-#include "QrCode.hpp"
 #include "Eigen/core"
+#include "../qrgen/Qrcoder.h"
 #include <igl/matlab/matlabinterface.h>
 namespace qrcode {
 
@@ -32,7 +32,7 @@ namespace qrcode {
 	// @Param Eigen::MatrixXd & Q	the QR Code symbol
 	//************************************
 	
-	bool qrCodeGenerator(std::string text,const qrcodegen::QrCode::Ecc &errColLvl,int mask,int border,Eigen::MatrixXd &Q);
+	bool qrCodeGenerator(std::string text,int errCol,int mask,int border,Eigen::MatrixXd &Q);
 	bool qrCodeGenerator(std::string text,int errColLvl, int mask, int border, Eigen::MatrixXd &Q, Eigen::MatrixXd &F);
 	bool writePNG(std::string file, Eigen::MatrixXd &Q, int scale);
 	void writePNG(Engine *engine,std::string file, int scale, Eigen::MatrixXd &D, Eigen::MatrixXd &F);
