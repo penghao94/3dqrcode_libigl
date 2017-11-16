@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
 	int num = 0;
 	Eigen::MatrixXd D;
 	Eigen::MatrixXi D_img;
+	Eigen::MatrixXd func;
 	//Parameters of qrcode image to mesh
 	int acc = 1;					//accuracy of projection
 	Eigen::MatrixXi F_hit;			//face id hit by ray
@@ -172,9 +173,9 @@ int main(int argc, char *argv[])
 		});
 		viewer.ngui->addButton("Load qrcode", [&]() {
 			scale = 1;
-			//num=qrcode::readData(D);
-			Eigen::MatrixXd func;
-			num = qrcode::readData(engine, D, func);
+			num=qrcode::readData(D);
+			
+			//num = qrcode::readData(engine, D, func);
 		});
 		// Add a button
 		viewer.ngui->addButton("Save Mesh", [&]() {
@@ -374,7 +375,7 @@ int main(int argc, char *argv[])
 
 		viewer.ngui->addButton("Optimization(A)", [&]() {
 			viewer.data.clear();
-			qrcode::optimization(engine, D, mode, wht_num, mul,num ,V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th, V_pxl, V_rest, F_rest, E_rest, V_fin, F_fin);
+			qrcode::optimization(engine, D,func, mode, wht_num, mul,num ,V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th, V_pxl, V_rest, F_rest, E_rest, V_fin, F_fin);
 			viewer.data.set_face_based(true);
 			viewer.data.set_mesh(V_fin,F_fin);
 		});
@@ -388,9 +389,11 @@ int main(int argc, char *argv[])
 		viewer.ngui->addVariable("longitude", longitude);
 		viewer.ngui->addVariable("distance", distance);
 		viewer.ngui->addButton("Direction light", [&]() {
-			Eigen::Vector4d position;
+			Eigen::Vector4d position,position1;
+			double latitude1 = latitude - 15.0;
 			position << cos(radian(latitude))*cos(radian(longitude)), cos(radian(latitude))*sin(radian(longitude)), sin(radian(latitude)),distance;
-			qrcode::direction_light(viewer, engine, position, D, mode,zoom, wht_num, mul, num, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th, V_pxl, V_rest, F_rest, E_rest, V_fin, F_fin);
+			position1 << cos(radian(latitude1))*cos(radian(longitude)), cos(radian(latitude1))*sin(radian(longitude)), sin(radian(latitude1)), distance;
+			qrcode::direction_light(viewer, engine, position,position1, D, mode,zoom, wht_num, mul, num, V_uncrv, F_qr, C_qr, E_qr, H_qr, Src, Dir, th, V_pxl, V_rest, F_rest, E_rest, V_fin, F_fin);
 		});
 		// Generate menu
 		viewer.screen->performLayout();

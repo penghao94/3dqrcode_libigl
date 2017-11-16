@@ -32,21 +32,25 @@ bool qrcode::gray2vis(Engine *engine,Eigen::MatrixXi & gray, Eigen::MatrixXd & v
 	igl::matlab::mlgetmatrix(&engine, "v", vis);
 	return false;
 }
-bool qrcode::optimization(Engine * engine, Eigen::MatrixXd & D, Eigen::Matrix4f & mode, int wht_num, int mul, int ext,Eigen::MatrixXd & V_uncrv, Eigen::MatrixXi & F_qr, Eigen::MatrixXd & C_qr,
+bool qrcode::optimization(Engine * engine, Eigen::MatrixXd & D, Eigen::MatrixXd &Func, Eigen::Matrix4f & mode, int wht_num, int mul, int ext,Eigen::MatrixXd & V_uncrv, Eigen::MatrixXi & F_qr, Eigen::MatrixXd & C_qr,
 	Eigen::MatrixXi & E_qr, Eigen::MatrixXd & H_qr, Eigen::MatrixXf & Src, Eigen::MatrixXf & Dir, std::vector<Eigen::MatrixXd>& th, Eigen::MatrixXd & V_pxl,
 	Eigen::MatrixXd & V_rest, Eigen::MatrixXi & F_rest, Eigen::MatrixXi & E_rest, Eigen::MatrixXd & V_fin, Eigen::MatrixXi& F_fin)
 {
 	using namespace std;
+
 	igl::matlab::MatlabWorkspace mw;
 	igl::Timer timer;
+
 	//limitation of th
 	Eigen::MatrixXd th_lim = ((th[1] - th[0]).array() / (th[1] - th[0]).maxCoeff()).matrix();
+
 	/*
 	initiate condition
 	*/
 	Eigen::MatrixXd th_crv(D.rows(), D.cols());
 	Eigen::MatrixXd AG(D.rows() - 1, D.cols() - 1);
 	Eigen::MatrixXd V_qr;
+
 	//primary value of carve down
 	double step = 0;
 	for (int i = 0; i < th[0].rows() - 1; i++) {
@@ -55,11 +59,14 @@ bool qrcode::optimization(Engine * engine, Eigen::MatrixXd & D, Eigen::Matrix4f 
 		}
 	}
 	step /= ((th[0].rows() - 1)*(th[0].cols() - 1));
+
 	int a, b;
 	double c = (th[1] - th[0]).maxCoeff(&a, &b);
 	double d = step / abs(Dir(a*th[0].cols() + b, 2));
+
 	th_crv.setConstant(d);
 	cout << "step:" << d << endl;
+
 	//Triangulate mesh
 	Eigen::MatrixXi F_tri;
 	//BW parameter
@@ -106,8 +113,10 @@ bool qrcode::optimization(Engine * engine, Eigen::MatrixXd & D, Eigen::Matrix4f 
 	igl::matlab::mleval(&engine, "[a,b]=size(W)");
 	igl::matlab::mleval(&engine, "W=W(1:(a-1),1:(b-1))");
 	igl::matlab::mleval(&engine, "w=length(find(W==0))");
+
 	int white = igl::matlab::mlgetscalar(&engine, "w");
 	int black = pow(BW.cols() - 1, 2) - white;
+
 	qrcode::pre_black_normal(BW, Src, Dir, th[0], th_crv, scale, black, Pb, Nb);
 	qrcode::pre_white_normal(BW, V_pxl, scale, white, Pw, Nw);
 
@@ -173,7 +182,15 @@ bool qrcode::optimization(Engine * engine, Eigen::MatrixXd & D, Eigen::Matrix4f 
 	igl::matlab::mleval(&engine, "m=mean(W(1,1:num))");
 	double gray_mean = igl::matlab::mlgetscalar(&engine, "m");
 	int threshold = round(gray_mean - 255 * 0.2);
-	cout << threshold << endl;
+	
+	Eigen::MatrixXi target=G;
+
+	for (int i = 0; i < BW.rows() - 1; i++) {
+		for (int j = 0; j < BW.rows() - 1; j++) {
+			target(i, j) = BW(i, j) == 0 ? target(i, j) : Func(i, j) == 0 ? round(gray_mean - 255 * 0.12) : round(gray_mean - 255 * 0.2);
+		}
+	}
+
 	int count = 1;
 	bool stop = false;
 	while (!stop)
@@ -184,7 +201,7 @@ bool qrcode::optimization(Engine * engine, Eigen::MatrixXd & D, Eigen::Matrix4f 
 					module = G.block(i*scale, j*scale, scale, scale).cast<double>();
 				AG(i, j) = (K.array()*module.array()).matrix().sum();
 				if (BW(i, j) != 0) {
-					if (AG(i, j)> threshold) {
+					if (AG(i, j)> target(i,j)) {
 						th_crv(i, j) = th_crv(i, j) + d;
 						stop = false;
 					}
@@ -225,12 +242,43 @@ bool qrcode::optimization(Engine * engine, Eigen::MatrixXd & D, Eigen::Matrix4f 
 			igl::writeOBJ("result/Experiment_" + to_string(count) + ".obj", V_fin, F_fin);
 			cout << "Optimization" << count << " time= " << timer.getElapsedTime() << endl;
 
+			mw.save(A, "A");
+			mw.save(AG, "AG");
+			mw.save(Vis, "V");
+			mw.write("result/Experiment_" + to_string(count) + ".mat");
+			count++;
 		}
-		mw.save(A, "A");
-		mw.save(AG, "AG");
-		mw.save(Vis, "V");
-		mw.write("result/Experiment_" + to_string(count) + ".mat");
-		count++;
 	}
+	/*additional test*/
+	double min = 10000;
+	//Carve down 
+	Eigen::MatrixXd th_crv1(th_crv.rows(), th_crv.cols());
+	for (int i = 0; i < BW.rows() - 1; i++)
+		for (int j = 0; j < BW.cols() - 1; j++)
+			if (BW(i, j) > 0)
+				min = th_crv(i, j) < min ? th_crv(i, j) : min;
+
+	th_crv1.setConstant(min);
+
+	qrcode::curve_down(V_uncrv, D, Src, Dir, th[0], wht_num, mul, th_crv1, V_qr);
+	//Remesh
+	V_fin.block(V_rest.rows(), 0, V_qr.rows(), 3) << V_qr;
+
+	igl::writeOBJ("result/Experiment_min.obj", V_fin, F_fin);
+
+	double max = 0;
+	for (int i = 0; i < BW.rows() - 1; i++)
+		for (int j = 0; j < BW.cols() - 1; j++)
+			if (BW(i, j) > 0)
+				max= th_crv(i, j) > max ? th_crv(i, j) : max;
+
+	th_crv1.setConstant(max);
+
+	qrcode::curve_down(V_uncrv, D, Src, Dir, th[0], wht_num, mul, th_crv1, V_qr);
+	//Remesh
+	V_fin.block(V_rest.rows(), 0, V_qr.rows(), 3) << V_qr;
+
+	igl::writeOBJ("result/Experiment_max.obj", V_fin, F_fin);
+
 	return true;
 }

@@ -9,7 +9,8 @@
 */
 #include "unproject_to_mesh.h"
 
-bool qrcode::unproject_to_mesh(const Eigen::Vector2f & pos, const Eigen::Matrix4f & model, const Eigen::Matrix4f & proj, const Eigen::Vector4f & viewport, const Eigen::MatrixXd & V, const Eigen::MatrixXi & F, Eigen::Vector3f & s, Eigen::Vector3f & dir, int & fid, Eigen::Vector3f & bc, Eigen::Vector2d & t)
+bool qrcode::unproject_to_mesh(const Eigen::Vector2f & pos, const Eigen::Matrix4f & model, const Eigen::Matrix4f & proj, const Eigen::Vector4f & viewport,
+	const Eigen::MatrixXd & V, const Eigen::MatrixXi & F, Eigen::Vector3f & s, Eigen::Vector3f & dir, int & fid, Eigen::Vector3f & bc, Eigen::Vector2d & t)
 {
 	using namespace std;
 	using namespace Eigen;

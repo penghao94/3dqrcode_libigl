@@ -122,7 +122,8 @@ bool qrcode::cutMesh(Eigen::MatrixXd & V, Eigen::MatrixXi & F, Eigen::MatrixXi &
 	}
 	for (int i = 0; i < Ee.rows(); i++) {
 		for (int j = 0; j < 2; j++) {
-			Ee(i, j) = V_s(Ee(i, j));
+			Ee
+			(i, j) = V_s(Ee(i, j));
 		}
 	}
 	return true; 

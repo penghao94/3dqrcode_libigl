@@ -13,7 +13,7 @@
 #include <igl/viewer/Viewer.h>
 #include <igl/matlab/matlabinterface.h>
 namespace qrcode {
-	bool direction_light(igl::viewer::Viewer &viewer, Engine *engine,Eigen::Vector4d& position,
+	bool direction_light(igl::viewer::Viewer &viewer, Engine *engine,Eigen::Vector4d& position,Eigen::Vector4d& position1,
 		Eigen::MatrixXd &D, Eigen::Matrix4f &mode,float zoom, int wht_num, int mul, int ext,
 		Eigen::MatrixXd &V_uncrv, Eigen::MatrixXi &F_qr, Eigen::MatrixXd &C_qr, Eigen::MatrixXi &E_qr,
 		Eigen::MatrixXd & H_qr, Eigen::MatrixXf & Src, Eigen::MatrixXf & Dir, std::vector<Eigen::MatrixXd>& th,

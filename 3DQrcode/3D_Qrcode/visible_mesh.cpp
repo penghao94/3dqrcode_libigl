@@ -36,7 +36,8 @@ std::vector<qrcode::Mesh> qrcode::visible_mesh(Eigen::MatrixXd & BW, std::vector
 			int y1 = floor(B[k](0));
 			int x2 = x1 + 1;
 			int y2 = y1 + 1;
-			V_qr.row(k) = V_pxl.row(x1*col + y1) + (B[k](1) - floor(B[k](1)))*(V_pxl.row((x1 + 1)*col + y1) - V_pxl.row(x1*col + y1)) + (B[k](0) - floor(B[k](0)))*(V_pxl.row(x1*col + y1 + 1) - V_pxl.row(x1*col + y1));
+			V_qr.row(k) = V_pxl.row(x1*col + y1) + (B[k](1) - floor(B[k](1)))*(V_pxl.row((x1 + 1)*col + y1) - V_pxl.row(x1*col + y1)) + 
+				(B[k](0) - floor(B[k](0)))*(V_pxl.row(x1*col + y1 + 1) - V_pxl.row(x1*col + y1));
 		}
 		V_qr.conservativeResize(V_qr.rows() + 1, 3);
 		V_qr.row(V_qr.rows() - 1) = (V_pxl.row(pos[p](0)*col + pos[p](1)) + V_pxl.row((pos[p](0) + 1)*col + pos[p](1) + 1)) / 2;

@@ -43,16 +43,25 @@ bool qrcode::tranglate(Eigen::MatrixXd & V1, Eigen::MatrixXi & E1, Eigen::Matrix
 	Eigen::MatrixXi C1, C2, IA1, IA2, IC1, IC2, E, _E1, _E2,_F,I;
 	igl::unique(E1, C1, IA1, IC1);
 	igl::unique(E2, C2, IA2, IC2);
+
+
 	V.resize(C1.rows() + C2.rows(), 2);
+
 	I.resize(C1.rows() + C2.rows(), 1);
 	I.block(0, 0, C1.rows(), 1) << C1;
 	I.block(C1.rows(), 0, C2.rows(), 1) <<(C2.array()+V1.rows()).matrix();
+
+
 	E.resize(E1.rows() + E2.rows(), 2);
+
 	_V1.resize(C1.rows(), 2);
 	_V2.resize(C2.rows(), 2);
+
 	_E1.resize(E1.rows(), 2);
 	_E2.resize(E2.rows(), 2);
+
 	_H.resize(1, 2);
+
 	Eigen::Vector4f vb;
 	Eigen::Vector4d vf;
 	for (int i = 0; i < C1.rows(); i++) {

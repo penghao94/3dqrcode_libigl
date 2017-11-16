@@ -228,8 +228,7 @@ bool qrcode::bwindex(Eigen::MatrixXd & L, int scale, std::vector<Eigen::MatrixXi
 	C.resize(0, 0);
 	I.resize(index);
 	V_index.resize(index);
-	cout << L << endl;
-	cout << index << endl;
+
 	for (int i = 0; i < L.rows(); i++) {
 		for (int j = 0; j < L.cols(); j++) {
 			if (round(L(i, j)) != 0) {

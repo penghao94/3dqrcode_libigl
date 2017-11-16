@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(3D_Qrcode)
 #Add qrlib
-include_directories("${PROJECT_SOURCE_DIR}/qrgen")
-add_subdirectory (qrgen) 
+include_directories("${PROJECT_SOURCE_DIR}/Qrgen/qrgen")
+add_subdirectory (Qrgen/qrgen) 
 set (QR_LIBS ${QR_LIBS} qrgen)
 
 #Add basiclib
